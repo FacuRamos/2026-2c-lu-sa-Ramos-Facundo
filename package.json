@@ -2,6 +2,10 @@
   "name": "ai-ticket-it-workspace",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0 <=22.x.x",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "start:frontend": "npm start --prefix packages/frontend",
     "start:backend": "npm start --prefix packages/backend",
