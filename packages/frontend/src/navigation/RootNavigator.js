@@ -28,6 +28,7 @@ export const RootNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator
+        key={userRole}
         screenOptions={{
           headerShown: false,
           animation: 'slide_from_right',

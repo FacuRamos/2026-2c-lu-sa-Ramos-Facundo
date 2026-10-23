@@ -26,16 +26,17 @@ export const CreateEventScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { categories, createEvent } = useApp();
 
-  const [nombre, setNombre] = useState('');
-  const [descripcion, setDescripcion] = useState('');
+  const [nombre, setNombre] = useState('Luna Park Sessions');
+  const [descripcion, setDescripcion] = useState('Una noche única con artistas emergentes y consagrados de la escena independiente.');
   const [categoriaId, setCategoriaId] = useState('cat-musica');
   const [fecha, setFecha] = useState('24/08/2026');
-  const [ubicacion, setUbicacion] = useState('');
+  const [ubicacion, setUbicacion] = useState('Luna Park, CABA');
   const [imagen, setImagen] = useState(PRESET_IMAGES[0].url);
 
   const [tiposEntrada, setTiposEntrada] = useState([
     { id: '1', nombre: 'General', precio: '18500', cupo: '500' },
     { id: '2', nombre: 'Platea', precio: '28000', cupo: '200' },
+    { id: '3', nombre: 'VIP', precio: '42000', cupo: '50' },
   ]);
 
   const [submitting, setSubmitting] = useState(false);

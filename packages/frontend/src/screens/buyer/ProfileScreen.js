@@ -22,6 +22,9 @@ export const ProfileScreen = ({ navigation }) => {
     const nextRole =
       userRole === USER_ROLES.BUYER ? USER_ROLES.ORGANIZER : USER_ROLES.BUYER;
     switchRole(nextRole);
+    if (nextRole === USER_ROLES.ORGANIZER) {
+      navigation.navigate('OrganizerDashboard');
+    }
   };
 
   return (
@@ -79,6 +82,20 @@ export const ProfileScreen = ({ navigation }) => {
 
         {/* Menú de Opciones */}
         <View style={styles.menuContainer}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              switchRole(USER_ROLES.ORGANIZER);
+              navigation.navigate('OrganizerDashboard');
+            }}
+          >
+            <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} style={styles.menuIcon} />
+            <Text style={[styles.menuText, { color: COLORS.primary, fontWeight: FONTS.semiBold }]}>
+              Crear y gestionar eventos
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => navigation.navigate('Purchases')}

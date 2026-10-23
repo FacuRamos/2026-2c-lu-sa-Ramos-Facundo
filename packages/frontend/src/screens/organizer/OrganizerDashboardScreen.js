@@ -52,7 +52,10 @@ export const OrganizerDashboardScreen = ({ navigation }) => {
         rightAction={
           <TouchableOpacity
             style={styles.switchBadge}
-            onPress={() => switchRole(USER_ROLES.BUYER)}
+            onPress={() => {
+              switchRole(USER_ROLES.BUYER);
+              navigation.navigate('BuyerTabs');
+            }}
             accessibilityLabel="Volver al modo Comprador"
           >
             <Ionicons name="swap-horizontal" size={14} color={COLORS.primary} />

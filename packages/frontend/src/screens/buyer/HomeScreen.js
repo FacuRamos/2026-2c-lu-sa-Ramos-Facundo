@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, FONTS, RADIUS } from '../../constants/theme.js';
+import { USER_ROLES } from '../../constants/roles.js';
 import { ScreenHeader } from '../../components/common/ScreenHeader.js';
 import { SearchBar } from '../../components/common/SearchBar.js';
 import { CategorySelector } from '../../components/common/CategorySelector.js';
@@ -41,8 +42,9 @@ export const HomeScreen = ({ navigation }) => {
   }, [navigation]);
 
   const handleSwitchToOrganizer = useCallback(() => {
-    switchRole('Organizador');
-  }, [switchRole]);
+    switchRole(USER_ROLES.ORGANIZER);
+    navigation.navigate('OrganizerDashboard');
+  }, [switchRole, navigation]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -60,10 +62,10 @@ export const HomeScreen = ({ navigation }) => {
             <TouchableOpacity
               onPress={handleSwitchToOrganizer}
               style={styles.roleBadge}
-              accessibilityLabel="Cambiar a Organizador"
+              accessibilityLabel="Cambiar a Modo Organizador"
             >
               <Ionicons name="swap-horizontal" size={14} color={COLORS.primary} />
-              <Text style={styles.roleText}>Org</Text>
+              <Text style={styles.roleText}>Modo Org</Text>
             </TouchableOpacity>
           </View>
         }
