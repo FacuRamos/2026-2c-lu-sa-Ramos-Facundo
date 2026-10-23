@@ -1,0 +1,408 @@
+{
+  "info": {
+    "_postman_id": "a4f8d29b-9c18-4e31-89d1-92e1069b76c8",
+    "name": "AI Ticket It - API Backend DDS 2026",
+    "description": "Colección completa de pruebas para la API de AI Ticket It (Trabajo Práctico Individual de DDS 2026).\nIncluye todos los Casos de Uso (CU1 a CU12), validaciones con Zod y endpoints de utilidades.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "compradorId", "value": "usr-comprador-1", "type": "string" },
+    { "key": "comprador2Id", "value": "usr-comprador-2", "type": "string" },
+    { "key": "organizadorId", "value": "usr-org-1", "type": "string" },
+    { "key": "eventoId", "value": "ev-rock-2026", "type": "string" },
+    { "key": "eventoPasadoId", "value": "ev-acustico-pasado", "type": "string" },
+    { "key": "tipoEntradaId", "value": "t-rock-campo", "type": "string" },
+    { "key": "tipoEntradaVipId", "value": "t-rock-vip", "type": "string" },
+    { "key": "categoriaId", "value": "cat-musica", "type": "string" },
+    { "key": "compraConfirmadaId", "value": "cmp-001", "type": "string" },
+    { "key": "compraUtilizadaId", "value": "cmp-002", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "0. Sistema & Seeder",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Verifica que el servicio backend se encuentre online."
+          }
+        },
+        {
+          "name": "Reset & Seeder de Base de Datos",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/seed",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "seed"]
+            },
+            "description": "Reinicia los repositorios en memoria con los datos de prueba (usuarios, categorías, eventos, compras y reseñas)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Usuarios",
+      "item": [
+        {
+          "name": "Listar todos los usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usuarios"]
+            }
+          }
+        },
+        {
+          "name": "Obtener usuario por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{compradorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usuarios", "{{compradorId}}"]
+            }
+          }
+        },
+        {
+          "name": "Crear nuevo usuario (Valida con Zod)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Esteban\",\n  \"apellido\": \"Quito\",\n  \"email\": \"esteban.quito@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usuarios"]
+            }
+          }
+        },
+        {
+          "name": "Agregar evento a Favoritos",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventoId\": \"{{eventoId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{compradorId}}/favoritos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usuarios", "{{compradorId}}", "favoritos"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar evento de Favoritos",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{compradorId}}/favoritos/{{eventoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usuarios", "{{compradorId}}", "favoritos", "{{eventoId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Categorías",
+      "item": [
+        {
+          "name": "Listar categorías",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categorias",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categorias"]
+            }
+          }
+        },
+        {
+          "name": "Obtener categoría por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categorias/{{categoriaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categorias", "{{categoriaId}}"]
+            }
+          }
+        },
+        {
+          "name": "Crear nueva categoría",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cine\",\n  \"descripcion\": \"Festivales de cine y proyecciones especiales\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categorias",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categorias"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Eventos",
+      "item": [
+        {
+          "name": "Listar todos los eventos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/eventos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "eventos"]
+            }
+          }
+        },
+        {
+          "name": "Buscar eventos por texto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/eventos?busqueda=Rock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "eventos"],
+              "query": [{ "key": "busqueda", "value": "Rock" }]
+            }
+          }
+        },
+        {
+          "name": "Filtrar por precio y ordenar ascendente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/eventos?precioMin=5000&precioMax=20000&ordenarPor=precio&direccion=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "eventos"],
+              "query": [
+                { "key": "precioMin", "value": "5000" },
+                { "key": "precioMax", "value": "20000" },
+                { "key": "ordenarPor", "value": "precio" },
+                { "key": "direccion", "value": "asc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener detalle de evento por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/eventos/{{eventoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "eventos", "{{eventoId}}"]
+            }
+          }
+        },
+        {
+          "name": "Crear nuevo evento con tipos de entrada",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cosquín Rock 2027\",\n  \"descripcion\": \"El clásico festival en las sierras\",\n  \"categoriaId\": \"{{categoriaId}}\",\n  \"organizadorId\": \"{{organizadorId}}\",\n  \"fecha\": \"2027-02-14T17:00:00.000Z\",\n  \"tiposEntrada\": [\n    {\n      \"id\": \"t-cosquin-general\",\n      \"nombre\": \"General\",\n      \"precio\": 25000,\n      \"cupo\": 1000\n    },\n    {\n      \"id\": \"t-cosquin-fanatic\",\n      \"nombre\": \"Espacio Fanatic\",\n      \"precio\": 60000,\n      \"cupo\": 150\n    }\n  ],\n  \"multimedia\": [\"assets/cosquin_banner.jpg\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/eventos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "eventos"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Compras (CU1, CU2, CU7, CU8, CU12)",
+      "item": [
+        {
+          "name": "CU12 - Realizar Compra de Entradas",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"compradorId\": \"{{compradorId}}\",\n  \"eventoId\": \"{{eventoId}}\",\n  \"tipoEntradaId\": \"{{tipoEntradaId}}\",\n  \"cantidad\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/compras",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "compras"]
+            },
+            "description": "Descuenta automáticamente el cupo disponible del tipo de entrada y genera el registro en estado CONFIRMADA."
+          }
+        },
+        {
+          "name": "Obtener compra por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/compras/{{compraConfirmadaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "compras", "{{compraConfirmadaId}}"]
+            }
+          }
+        },
+        {
+          "name": "CU1 - Comprador visualiza sus compras (con días restantes)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/compras/comprador/{{compradorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "compras", "comprador", "{{compradorId}}"]
+            },
+            "description": "Calcula diasFaltantesParaEvento únicamente si la compra está CONFIRMADA."
+          }
+        },
+        {
+          "name": "CU2 - Organizador visualiza compras y disponibilidad del evento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/compras/evento/{{eventoId}}?organizadorId={{organizadorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "compras", "evento", "{{eventoId}}"],
+              "query": [
+                { "key": "organizadorId", "value": "{{organizadorId}}" }
+              ]
+            },
+            "description": "Exige organizadorId en query params. Retorna compras totales y disponibilidad/ventas por cada tipo de entrada."
+          }
+        },
+        {
+          "name": "CU5/CU6 - Enviar mensaje en el chat de la compra",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": \"{{compradorId}}\",\n  \"mensaje\": \"Hola! ¿El acceso VIP tiene estacionamiento exclusivo?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/compras/{{compraConfirmadaId}}/mensajes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "compras", "{{compraConfirmadaId}}", "mensajes"]
+            }
+          }
+        },
+        {
+          "name": "CU7/CU8 - Cancelar compra (con reembolso y restitución de cupo)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": \"{{compradorId}}\",\n  \"motivo\": \"No podré asistir por motivos personales\",\n  \"conReembolso\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/compras/{{compraConfirmadaId}}/cancelar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "compras", "{{compraConfirmadaId}}", "cancelar"]
+            },
+            "description": "Transiciona el estado a REEMBOLSADA o CANCELADA y restituye los cupos al evento."
+          }
+        },
+        {
+          "name": "CU8/CU9 - Marcar entrada como utilizada en el evento",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": \"{{organizadorId}}\",\n  \"motivo\": \"Ingreso verificado en puerta 1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/compras/{{compraConfirmadaId}}/utilizar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "compras", "{{compraConfirmadaId}}", "utilizar"]
+            },
+            "description": "Solo el organizador del evento puede marcar una entrada como UTILIZADA."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Reseñas y Reputación (CU9, CU10)",
+      "item": [
+        {
+          "name": "CU9 - Crear reseña (requiere entrada UTILIZADA)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"compradorId\": \"{{comprador2Id}}\",\n  \"eventoId\": \"{{eventoPasadoId}}\",\n  \"compraId\": \"{{compraUtilizadaId}}\",\n  \"detalle\": \"Espectacular concierto, la iluminación y el sonido estuvieron impecables.\",\n  \"puntuacion\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/resenias",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resenias"]
+            },
+            "description": "Valida que la compra esté en estado UTILIZADA antes de permitir reseñar."
+          }
+        },
+        {
+          "name": "CU10 - Consultar reseñas y reputación de Organizador",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resenias/organizador/{{organizadorId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resenias", "organizador", "{{organizadorId}}"]
+            },
+            "description": "Calcula el puntaje promedio del organizador en base a todas las reseñas de sus eventos."
+          }
+        },
+        {
+          "name": "Consultar reseñas de un Evento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/resenias/evento/{{eventoPasadoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "resenias", "evento", "{{eventoPasadoId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
