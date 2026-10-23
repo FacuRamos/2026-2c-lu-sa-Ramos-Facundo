@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,73 +12,43 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp } from '../../context/AppContext.js';
-import { apiService } from '../../services/apiService.js';
 import { COLORS, SPACING, FONTS, RADIUS } from '../../constants/theme.js';
 import { ScreenHeader } from '../../components/common/ScreenHeader.js';
 import { ChatMessage } from '../../components/chat/ChatMessage.js';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner.js';
+import { useChat } from '../../hooks/useChat.js';
 
 export const ChatScreen = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
   const { purchaseId, title } = route.params || {};
-  const { currentUser, sendMessage, purchases } = useApp();
 
-  const [purchase, setPurchase] = useState(null);
-  const [inputText, setInputText] = useState('');
-  const [sending, setSending] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const {
+    currentUser,
+    purchase,
+    messages,
+    inputText,
+    setInputText,
+    sending,
+    loading,
+    handleSend,
+    scrollViewRef,
+  } = useChat(purchaseId);
 
-  const scrollViewRef = useRef(null);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
-  useEffect(() => {
-    async function loadChat() {
-      try {
-        setLoading(true);
-        const p = await apiService.getCompraById(purchaseId);
-        setPurchase(p);
-      } catch (err) {
-        Alert.alert('Error', err.message || 'No se pudo cargar la conversación');
-        navigation.goBack();
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (purchaseId) {
-      loadChat();
-    }
-  }, [purchaseId, purchases, navigation]);
-
-  const handleSend = async () => {
-    if (!inputText.trim()) return;
-
-    const textToSend = inputText.trim();
-    setInputText('');
-    setSending(true);
-
-    try {
-      await sendMessage(purchase.id, textToSend);
-      const updated = await apiService.getCompraById(purchase.id);
-      setPurchase(updated);
-      setTimeout(() => {
-        if (scrollViewRef.current) {
-          scrollViewRef.current.scrollToEnd({ animated: true });
-        }
-      }, 100);
-    } catch (err) {
-      Alert.alert('Error al enviar', err.message || 'No se pudo enviar el mensaje');
-      setInputText(textToSend);
-    } finally {
-      setSending(false);
-    }
-  };
+  const handleShowOptions = useCallback(() => {
+    if (!purchase) return;
+    Alert.alert(
+      'Opciones del chat',
+      `Conversación sobre la compra de ${purchase.cantidad} entradas para ${purchase.eventoTitulo}.`
+    );
+  }, [purchase]);
 
   if (loading || !purchase) {
     return <LoadingSpinner fullScreen message="Cargando chat..." />;
   }
-
-  const messages = purchase.mensajes || [];
 
   return (
     <KeyboardAvoidingView
@@ -90,16 +60,12 @@ export const ChatScreen = ({ route, navigation }) => {
         title={title || purchase.eventoTitulo}
         subtitle={`Compra #${purchase.id}`}
         showBack
-        onBack={() => navigation.goBack()}
+        onBack={handleBack}
         rightAction={
           <TouchableOpacity
             style={styles.moreBtn}
-            onPress={() =>
-              Alert.alert(
-                'Opciones del chat',
-                `Conversación sobre la compra de ${purchase.cantidad} entradas para ${purchase.eventoTitulo}.`
-              )
-            }
+            onPress={handleShowOptions}
+            accessibilityLabel="Opciones del chat"
           >
             <Ionicons name="ellipsis-horizontal" size={20} color={COLORS.textPrimary} />
           </TouchableOpacity>
@@ -120,7 +86,7 @@ export const ChatScreen = ({ route, navigation }) => {
 
         {messages.length > 0 ? (
           messages.map((msg) => {
-            const isOwn = msg.remitenteId === currentUser.id;
+            const isOwn = msg.remitenteId === currentUser?.id;
             return (
               <ChatMessage
                 key={msg.id}
@@ -187,21 +153,21 @@ const styles = StyleSheet.create({
   dateBadge: {
     backgroundColor: COLORS.backgroundSecondary,
     paddingHorizontal: SPACING.md,
-    paddingVertical: 3,
+    paddingVertical: SPACING.xs,
     borderRadius: RADIUS.round,
   },
   dateBadgeText: {
-    fontSize: 10,
+    fontSize: FONTS.sizes.xs,
     fontWeight: FONTS.semiBold,
     color: COLORS.textSecondary,
   },
   emptyChatBox: {
     padding: SPACING.xl,
     alignItems: 'center',
-    marginTop: SPACING.xxl,
+    marginTop: SPACING.xxxl,
   },
   emptyChatText: {
-    fontSize: 12,
+    fontSize: FONTS.sizes.xs,
     color: COLORS.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
@@ -222,7 +188,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm + 2,
-    fontSize: 13,
+    fontSize: FONTS.sizes.sm,
     color: COLORS.textPrimary,
     maxHeight: 100,
   },

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,43 +9,40 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp } from '../../context/AppContext.js';
 import { COLORS, SPACING, FONTS, RADIUS } from '../../constants/theme.js';
 import { ScreenHeader } from '../../components/common/ScreenHeader.js';
 import { SearchBar } from '../../components/common/SearchBar.js';
 import { CategorySelector } from '../../components/common/CategorySelector.js';
 import { EventCard } from '../../components/events/EventCard.js';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner.js';
+import { HomeGreeting } from '../../components/home/HomeGreeting.js';
+import { useEvents } from '../../hooks/useEvents.js';
 
 export const HomeScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const {
     currentUser,
-    events,
     categories,
     isLoading,
-    refreshData,
+    refreshing,
+    onRefresh,
+    selectedCategory,
+    setSelectedCategory,
+    filteredEvents,
+    featuredEvents,
+    otherEvents,
     isFavorite,
     toggleFavorite,
     switchRole,
-  } = useApp();
+  } = useEvents();
 
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [refreshing, setRefreshing] = useState(false);
+  const handleNavigateToSearch = useCallback(() => {
+    navigation.navigate('Search');
+  }, [navigation]);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await refreshData();
-    setRefreshing(false);
-  };
-
-  const filteredEvents = events.filter((e) => {
-    if (selectedCategory === 'all') return true;
-    return e.categoriaId === selectedCategory;
-  });
-
-  const featuredEvents = filteredEvents.filter((e) => e.destacado);
-  const otherEvents = filteredEvents.filter((e) => !e.destacado);
+  const handleSwitchToOrganizer = useCallback(() => {
+    switchRole('Organizador');
+  }, [switchRole]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -54,14 +51,14 @@ export const HomeScreen = ({ navigation }) => {
         rightAction={
           <View style={styles.headerActions}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('Search')}
+              onPress={handleNavigateToSearch}
               style={styles.iconBtn}
               accessibilityLabel="Buscar"
             >
               <Ionicons name="search-outline" size={20} color={COLORS.textPrimary} />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => switchRole('Organizador')}
+              onPress={handleSwitchToOrganizer}
               style={styles.roleBadge}
               accessibilityLabel="Cambiar a Organizador"
             >
@@ -79,20 +76,14 @@ export const HomeScreen = ({ navigation }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />
         }
       >
-        {/* Saludo y Titulo */}
-        <View style={styles.greetingSection}>
-          <Text style={styles.greetingSubtext}>Buen día, {currentUser.nombre}</Text>
-          <Text style={styles.greetingTitle}>
-            Encontrá tu próximo{'\n'}
-            <Text style={styles.greetingAccent}>momento inolvidable.</Text>
-          </Text>
-        </View>
+        {/* Saludo y Título extraído a componente atómico */}
+        <HomeGreeting userName={currentUser?.nombre} />
 
         {/* Buscador de acceso rápido */}
         <View style={styles.searchSection}>
           <SearchBar
             editable={false}
-            onPress={() => navigation.navigate('Search')}
+            onPress={handleNavigateToSearch}
             placeholder="Buscá artistas, eventos o lugares..."
           />
         </View>
@@ -115,7 +106,7 @@ export const HomeScreen = ({ navigation }) => {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>Destacados</Text>
-                  <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+                  <TouchableOpacity onPress={handleNavigateToSearch}>
                     <Text style={styles.seeAllText}>Ver todos</Text>
                   </TouchableOpacity>
                 </View>
@@ -143,7 +134,7 @@ export const HomeScreen = ({ navigation }) => {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Para vos</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+                <TouchableOpacity onPress={handleNavigateToSearch}>
                   <Text style={styles.seeAllText}>Filtrar</Text>
                 </TouchableOpacity>
               </View>
@@ -184,40 +175,19 @@ const styles = StyleSheet.create({
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: SPACING.xs,
     backgroundColor: COLORS.primaryLight,
     paddingHorizontal: SPACING.sm,
-    paddingVertical: 4,
+    paddingVertical: SPACING.xs,
     borderRadius: RADIUS.round,
   },
   roleText: {
-    fontSize: 11,
+    fontSize: FONTS.sizes.xs,
     fontWeight: FONTS.bold,
     color: COLORS.primary,
   },
   scrollContent: {
     paddingBottom: SPACING.xxxl,
-  },
-  greetingSection: {
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.sm,
-    marginBottom: SPACING.md,
-  },
-  greetingSubtext: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    fontWeight: FONTS.medium,
-  },
-  greetingTitle: {
-    fontSize: 24,
-    fontWeight: FONTS.bold,
-    color: COLORS.textPrimary,
-    letterSpacing: -0.5,
-    marginTop: 4,
-    lineHeight: 30,
-  },
-  greetingAccent: {
-    color: COLORS.primary,
   },
   searchSection: {
     paddingHorizontal: SPACING.xl,
@@ -238,12 +208,12 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: FONTS.sizes.lg,
     fontWeight: FONTS.bold,
     color: COLORS.textPrimary,
   },
   seeAllText: {
-    fontSize: 12,
+    fontSize: FONTS.sizes.xs,
     fontWeight: FONTS.semiBold,
     color: COLORS.primary,
   },

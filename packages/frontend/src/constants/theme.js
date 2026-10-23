@@ -62,6 +62,7 @@ export const RADIUS = {
   lg: 16,
   xl: 20,
   round: 999,
+  full: 999,
 };
 
 export const SHADOWS = {
@@ -86,4 +87,17 @@ export const FONTS = {
   medium: '500',
   semiBold: '600',
   bold: '700',
+  sizes: {
+    xs: 11,
+    sm: 13,
+    md: 15,
+    lg: 17,
+    xl: 20,
+    xxl: 24,
+  },
+  families: {
+    body: 'System',
+    bodyMedium: 'System',
+    title: 'System',
+  },
 };
