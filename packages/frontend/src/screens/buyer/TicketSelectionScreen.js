@@ -198,7 +198,7 @@ export const TicketSelectionScreen = ({ route, navigation }) => {
         <View style={styles.guaranteeBox}>
           <Ionicons name="shield-checkmark" size={16} color={COLORS.accentGreen} style={styles.shieldIcon} />
           <Text style={styles.guaranteeText}>
-            Compra protegida. Podés confirmar tu pedido y gestionar cancelaciones según las políticas del evento.
+            Compra pendiente de pago. Podés confirmar o cancelar antes de finalizar.
           </Text>
         </View>
 
