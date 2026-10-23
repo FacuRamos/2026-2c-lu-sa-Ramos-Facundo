@@ -42,23 +42,23 @@ El repositorio está estructurado como un monorepo modular:
 ## 🚀 Puesta en Marcha
 
 ### Prerrequisitos
-- **Node.js** >= 18 (recomendado Node 20 LTS)
-- **npm** >= 9
-- Dispositivo móvil con la app **Expo Go** (Android o iOS) o emulador configurado.
+- **Node.js** >= 20 LTS (recomendado **Node 22 LTS**, configurable vía `.nvmrc` con `nvm use` o `fnm use`).
+- **npm** >= 9 (o npm 10 con Node 22).
+- Navegador web moderno o dispositivo móvil con la app **Expo Go** (Android o iOS).
 
 ---
 
 ### 1. Ejecutar Tests Automatizados
 
-Para ejecutar todos los tests del monorepo (71 tests en total):
+Para ejecutar todos los tests del monorepo (96 tests en total):
 ```bash
 npm test
 ```
 
 O por paquete individual:
 ```bash
-npm run test:backend   # Ejecuta los 47 tests del backend
-npm run test:frontend  # Ejecuta los 24 tests del frontend
+npm run test:backend   # Ejecuta los 55 tests del backend
+npm run test:frontend  # Ejecuta los 41 tests del frontend (hooks, tokens, servicios)
 ```
 
 ---

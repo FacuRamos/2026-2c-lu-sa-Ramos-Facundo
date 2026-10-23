@@ -87,3 +87,13 @@ El backend respeta el principio de inversión de dependencias: las capas interna
   - Estado vacío (`EmptyState`)
   - Estado de error (`ErrorMessage`)
   - Estado exitoso con datos actualizados.
+
+---
+
+## ⚙️ Entorno de Ejecución y Versionado (.nvmrc)
+
+El monorepo estandariza su entorno de desarrollo mediante **Node.js 22 LTS**, manteniendo compatibilidad hacia atrás con **Node.js 20 LTS** para la cátedra:
+- **Gestión de Versiones:** El archivo `.nvmrc` en la raíz fija la versión recomendada (`22`).
+- **NVM / fnm:** Se recomienda usar `fnm use` o `nvm use` para alinear la versión del runtime en un comando.
+- **Engines:** Declarado en los `package.json` mediante `"engines": { "node": ">=20.0.0 <=22.x.x" }`.
+- **Scripts de Test Universales:** Ambos paquetes utilizan `node --test` nativo, garantizando ejecución sin dependencias adicionales en cualquier sistema operativo.
