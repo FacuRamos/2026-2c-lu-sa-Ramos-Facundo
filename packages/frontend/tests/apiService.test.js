@@ -1,8 +1,18 @@
-import { test, describe, beforeEach } from 'node:test';
+import { test, describe, beforeEach, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiService } from '../src/services/apiService.js';
+import { setBaseUrl, resetBaseUrl } from '../src/services/api/client/config.js';
 
 describe('ApiService - Core Business and Domain Logic Tests', () => {
+  before(() => {
+    // Forzar entorno de fallback local para pruebas unitarias de aislamiento
+    setBaseUrl('http://127.0.0.1:59999/api');
+  });
+
+  after(() => {
+    resetBaseUrl();
+  });
+
   beforeEach(() => {
     apiService.reset();
   });

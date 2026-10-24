@@ -3,8 +3,14 @@ import assert from 'node:assert/strict';
 
 import { secureStoreService, SECURE_KEYS } from '../src/services/secureStoreService.js';
 import { apiService } from '../src/services/apiService.js';
+import { setBaseUrl, resetBaseUrl } from '../src/services/api/client/config.js';
 
 test('SPEC-007: Frontend Auth, Secure Storage & Notification Center Tests', async (t) => {
+  // Asegurar aislamiento determinista en tests unitarios frente a backends locales activos
+  setBaseUrl('http://127.0.0.1:59999/api');
+  t.after(() => {
+    resetBaseUrl();
+  });
   await t.test('Secure Store Hardware Abstraction (expo-secure-store)', async (st) => {
     await st.test('almacena y recupera strings de forma segura', async () => {
       await secureStoreService.setItem('TEST_KEY', 'jwt-super-secreto-123');

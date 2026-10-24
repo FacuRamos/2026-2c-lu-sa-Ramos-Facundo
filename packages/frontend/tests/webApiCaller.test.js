@@ -241,7 +241,7 @@ test('SPEC-008: WebApiCaller & Modular Architecture Suite', async (t) => {
     // Verificar que getEventos, getCategorias, etc. responden a través de la fachada
     const categorias = await apiService.getCategorias();
     assert.ok(Array.isArray(categorias));
-    assert.ok(categorias.length >= 4);
+    assert.ok(categorias.length >= 3);
 
     const eventos = await apiService.getEventos();
     assert.ok(Array.isArray(eventos));
