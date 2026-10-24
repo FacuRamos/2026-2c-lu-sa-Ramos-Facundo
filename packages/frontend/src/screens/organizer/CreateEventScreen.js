@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -135,7 +137,11 @@ export const CreateEventScreen = ({ navigation }) => {
   const availableCategories = categories.filter((c) => c.id !== 'all');
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <KeyboardAvoidingView
+      style={[styles.container, { paddingTop: insets.top }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+    >
       <ScreenHeader
         title="Crear evento"
         showBack
@@ -149,7 +155,9 @@ export const CreateEventScreen = ({ navigation }) => {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 280 }]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         <FormInput
           label="Nombre del evento"
@@ -303,7 +311,7 @@ export const CreateEventScreen = ({ navigation }) => {
           style={styles.publishBtn}
         />
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 

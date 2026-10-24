@@ -6,6 +6,8 @@ import {
   ScrollView,
   Image,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../../context/AppContext.js';
@@ -19,8 +21,14 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner.js';
 
 export const ReviewScreen = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
-  const { eventId, eventTitle, eventImage, purchaseId } = route.params || {};
+  const { eventId, eventoId: paramEventoId, eventTitle, eventImage, purchaseId } = route.params || {};
   const { createReview, purchases } = useApp();
+
+  // Resolver ID de evento de forma robusta por params o por purchaseId
+  const targetPurchase = purchases.find((p) => p.id === purchaseId);
+  const resolvedEventId = eventId || paramEventoId || targetPurchase?.eventoId;
+  const resolvedTitle = eventTitle || targetPurchase?.eventoTitulo || 'Calificar evento';
+  const resolvedImage = eventImage || targetPurchase?.eventoImagen;
 
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
@@ -30,15 +38,19 @@ export const ReviewScreen = ({ route, navigation }) => {
 
   // Validar si el usuario tiene una compra UTILIZADA para este evento
   const hasUsedPurchase = purchases.some(
-    (p) => p.eventoId === eventId && p.estado === 'UTILIZADA'
+    (p) =>
+      ((resolvedEventId && p.eventoId === resolvedEventId) || (purchaseId && p.id === purchaseId)) &&
+      p.estado === 'UTILIZADA'
   );
 
   useEffect(() => {
     async function loadReviews() {
       try {
         setLoading(true);
-        const revs = await apiService.getReseniasByEvento(eventId);
-        setExistingReviews(revs);
+        if (resolvedEventId) {
+          const revs = await apiService.getReseniasByEvento(resolvedEventId);
+          setExistingReviews(revs);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -46,10 +58,12 @@ export const ReviewScreen = ({ route, navigation }) => {
       }
     }
 
-    if (eventId) {
+    if (resolvedEventId) {
       loadReviews();
+    } else {
+      setLoading(false);
     }
-  }, [eventId]);
+  }, [resolvedEventId]);
 
   const handleSubmit = async () => {
     if (!comment.trim()) {
@@ -65,10 +79,15 @@ export const ReviewScreen = ({ route, navigation }) => {
       return;
     }
 
+    if (!resolvedEventId) {
+      Alert.alert('Error', 'No se pudo identificar el evento a calificar.');
+      return;
+    }
+
     try {
       setSubmitting(true);
       await createReview({
-        eventoId,
+        eventoId: resolvedEventId,
         puntuacion: rating,
         detalle: comment.trim(),
       });
@@ -95,7 +114,11 @@ export const ReviewScreen = ({ route, navigation }) => {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <KeyboardAvoidingView
+      style={[styles.container, { paddingTop: insets.top }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+    >
       <ScreenHeader
         title="Calificar evento"
         showBack
@@ -104,15 +127,17 @@ export const ReviewScreen = ({ route, navigation }) => {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 80 }]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         {/* Banner de evento */}
-        {eventImage ? (
-          <Image source={{ uri: eventImage }} style={styles.eventImage} resizeMode="cover" />
+        {resolvedImage ? (
+          <Image source={{ uri: resolvedImage }} style={styles.eventImage} resizeMode="cover" />
         ) : null}
 
         <View style={styles.reviewCard}>
-          <Text style={styles.eventTitle}>{eventTitle || 'Calificar evento'}</Text>
+          <Text style={styles.eventTitle}>{resolvedTitle}</Text>
           <Text style={styles.subtitle}>Tu opinión ayuda a otros asistentes</Text>
 
           {/* Selector de Estrellas */}
@@ -169,7 +194,7 @@ export const ReviewScreen = ({ route, navigation }) => {
           <Text style={styles.noReviews}>Sé el primero en compartir una reseña.</Text>
         )}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
