@@ -4,6 +4,7 @@ import {
   INITIAL_EVENTS,
   INITIAL_PURCHASES,
   INITIAL_REVIEWS,
+  INITIAL_NOTIFICATIONS,
 } from '../data/mockData.js';
 
 class ApiService {
@@ -17,6 +18,7 @@ class ApiService {
     this.events = JSON.parse(JSON.stringify(INITIAL_EVENTS));
     this.purchases = JSON.parse(JSON.stringify(INITIAL_PURCHASES));
     this.reviews = JSON.parse(JSON.stringify(INITIAL_REVIEWS));
+    this.notificaciones = JSON.parse(JSON.stringify(INITIAL_NOTIFICATIONS));
   }
 
   // --- CATEGORIAS ---
@@ -442,6 +444,179 @@ class ApiService {
       totalMensajes: (c.mensajes && c.mensajes.length) || 0,
       tipoEntradaNombre: c.tipoEntradaNombre,
     }));
+  }
+
+  // --- NOTIFICACIONES ---
+  async getNotificaciones({ usuarioId = null, rolDestino = null, noLeidas = false } = {}) {
+    let result = [...this.notificaciones];
+
+    if (rolDestino) {
+      result = result.filter(n => n.rolDestino === rolDestino);
+    }
+    if (usuarioId) {
+      result = result.filter(n => !n.usuarioId || n.usuarioId === usuarioId);
+    }
+    if (noLeidas) {
+      result = result.filter(n => !n.leida);
+    }
+
+    return result.sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
+  }
+
+  async marcarNotificacionLeida(id) {
+    const notif = this.notificaciones.find(n => n.id === id);
+    if (notif) {
+      notif.leida = true;
+    }
+    return notif ? { ...notif } : null;
+  }
+
+  async marcarTodasNotificacionesLeidas({ usuarioId = null, rolDestino = null } = {}) {
+    let count = 0;
+    this.notificaciones.forEach(n => {
+      let match = true;
+      if (rolDestino && n.rolDestino !== rolDestino) match = false;
+      if (usuarioId && n.usuarioId && n.usuarioId !== usuarioId) match = false;
+      if (match && !n.leida) {
+        n.leida = true;
+        count++;
+      }
+    });
+    return { marcadas: count };
+  }
+
+  async getUnreadNotificacionesCount({ usuarioId = null, rolDestino = null } = {}) {
+    const list = await this.getNotificaciones({ usuarioId, rolDestino, noLeidas: true });
+    return list.length;
+  }
+
+  async crearNotificacion(data) {
+    const nueva = {
+      id: `notif-${Date.now()}`,
+      usuarioId: data.usuarioId || null,
+      rolDestino: data.rolDestino || 'Comprador',
+      tipo: data.tipo,
+      titulo: data.titulo,
+      mensaje: data.mensaje,
+      leida: false,
+      entidadId: data.entidadId || null,
+      fechaCreacion: new Date().toISOString(),
+    };
+    this.notificaciones.unshift(nueva);
+    return { ...nueva };
+  }
+
+  // --- AUTH ---
+  async loginDemo(rol = 'Comprador') {
+    const isOrg = rol === 'Organizador';
+    const user = isOrg
+      ? {
+          id: 'usr-org-1',
+          nombre: 'Luna',
+          apellido: 'Producciones',
+          nombreProductora: 'Luna Producciones',
+          email: 'contacto@lunaproducciones.com',
+          avatar: 'LP',
+          rol: 'Organizador',
+        }
+      : {
+          id: 'usr-comprador-1',
+          nombre: 'Martina',
+          apellido: 'García',
+          email: 'martina.garcia@example.com',
+          avatar: 'MG',
+          rol: 'Comprador',
+        };
+
+    const token = isOrg ? 'demo-jwt-organizer-token' : 'demo-jwt-buyer-token';
+    const refreshToken = isOrg ? 'demo-refresh-organizer' : 'demo-refresh-buyer';
+
+    return { token, refreshToken, usuario: user };
+  }
+
+  async login({ email, password, rolSolicitado = null }) {
+    if (!email || !email.trim()) throw new Error('El email es obligatorio');
+    if (!password) throw new Error('La contraseña es obligatoria');
+
+    const normalized = email.trim().toLowerCase();
+    let user = this.users.find(u => u.email && u.email.toLowerCase() === normalized);
+
+    if (!user) {
+      // Si coincide con usuario demo o se crea al vuelo
+      if (normalized.includes('luna') || rolSolicitado === 'Organizador') {
+        user = {
+          id: 'usr-org-1',
+          nombre: 'Luna',
+          apellido: 'Producciones',
+          nombreProductora: 'Luna Producciones',
+          email: normalized,
+          rol: 'Organizador',
+          avatar: 'LP',
+        };
+      } else {
+        user = {
+          id: `usr-${Date.now()}`,
+          nombre: 'Usuario',
+          apellido: 'Demo',
+          email: normalized,
+          rol: 'Comprador',
+          avatar: 'UD',
+        };
+      }
+    }
+
+    const token = `jwt-token-${user.id}-${Date.now()}`;
+    const refreshToken = `ref-${user.id}-${Date.now()}`;
+
+    return { token, refreshToken, usuario: user };
+  }
+
+  async registerBuyer({ nombre, apellido, email, password }) {
+    if (!nombre || nombre.trim().length < 2) throw new Error('El nombre debe tener al menos 2 caracteres');
+    if (!apellido || apellido.trim().length < 2) throw new Error('El apellido debe tener al menos 2 caracteres');
+    if (!email || !email.includes('@')) throw new Error('Formato de email inválido');
+    if (!password || password.length < 6) throw new Error('La contraseña debe tener al menos 6 caracteres');
+
+    const newUser = {
+      id: `usr-buyer-${Date.now()}`,
+      nombre: nombre.trim(),
+      apellido: apellido.trim(),
+      email: email.trim().toLowerCase(),
+      rol: 'Comprador',
+      avatar: `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase(),
+      favoritos: [],
+    };
+
+    this.users.push(newUser);
+    const token = `jwt-token-${newUser.id}`;
+    const refreshToken = `ref-${newUser.id}`;
+
+    return { token, refreshToken, usuario: newUser };
+  }
+
+  async registerOrganizer({ nombre, apellido, nombreProductora, email, password, razonSocial }) {
+    if (!nombre || nombre.trim().length < 2) throw new Error('El nombre del responsable debe tener al menos 2 caracteres');
+    if (!apellido || apellido.trim().length < 2) throw new Error('El apellido debe tener al menos 2 caracteres');
+    if (!nombreProductora || nombreProductora.trim().length < 2) throw new Error('El nombre de la productora es obligatorio');
+    if (!email || !email.includes('@')) throw new Error('Formato de email inválido');
+    if (!password || password.length < 6) throw new Error('La contraseña debe tener al menos 6 caracteres');
+
+    const newOrg = {
+      id: `usr-org-${Date.now()}`,
+      nombre: nombre.trim(),
+      apellido: apellido.trim(),
+      nombreProductora: nombreProductora.trim(),
+      razonSocial: razonSocial ? razonSocial.trim() : null,
+      email: email.trim().toLowerCase(),
+      rol: 'Organizador',
+      avatar: nombreProductora.substring(0, 2).toUpperCase(),
+    };
+
+    this.users.push(newOrg);
+    const token = `jwt-token-${newOrg.id}`;
+    const refreshToken = `ref-${newOrg.id}`;
+
+    return { token, refreshToken, usuario: newOrg };
   }
 }
 

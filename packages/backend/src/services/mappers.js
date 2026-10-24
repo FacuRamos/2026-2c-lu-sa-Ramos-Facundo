@@ -12,7 +12,10 @@ export function mapUsuarioDto(usuario) {
         nombre: usuario.nombre,
         apellido: usuario.apellido,
         nombreCompleto: usuario.nombreCompleto || `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim(),
-        email: usuario.email || null
+        email: usuario.email || null,
+        rol: usuario.rol || 'Comprador',
+        nombreProductora: usuario.nombreProductora || null,
+        razonSocial: usuario.razonSocial || null
     };
 }
 

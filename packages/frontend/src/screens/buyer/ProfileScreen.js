@@ -116,11 +116,20 @@ export const ProfileScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => Alert.alert('Notificaciones', 'Tenés las notificaciones activas para recordatorios de eventos.')}
+            onPress={() => navigation.navigate('Notification')}
           >
             <Ionicons name="notifications-outline" size={20} color={COLORS.textPrimary} style={styles.menuIcon} />
-            <Text style={styles.menuText}>Notificaciones</Text>
+            <Text style={styles.menuText}>Centro de Notificaciones</Text>
             <Ionicons name="chevron-forward" size={16} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Ionicons name="log-in-outline" size={20} color={COLORS.primary} style={styles.menuIcon} />
+            <Text style={[styles.menuText, { color: COLORS.primary }]}>Cambiar de cuenta / Login</Text>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
           </TouchableOpacity>
 
           <TouchableOpacity

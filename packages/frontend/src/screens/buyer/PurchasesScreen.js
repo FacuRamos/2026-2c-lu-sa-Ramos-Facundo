@@ -37,7 +37,7 @@ export const PurchasesScreen = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScreenHeader title="Mis compras" />
+      <ScreenHeader title="Mis compras" showNotificationBell={true} />
 
       {/* Pestañas de Filtrado extraídas a subcomponente */}
       <PurchaseTabs

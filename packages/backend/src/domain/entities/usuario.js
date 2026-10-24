@@ -7,6 +7,10 @@ export class Usuario {
         nombre,
         apellido,
         email = null,
+        password = null,
+        rol = "Comprador",
+        nombreProductora = null,
+        razonSocial = null,
         favoritos = []
     } = {}) {
         if (!nombre || typeof nombre !== "string" || nombre.trim().length === 0) {
@@ -20,11 +24,18 @@ export class Usuario {
         this.nombre = nombre.trim();
         this.apellido = apellido.trim();
         this.email = email ? email.trim().toLowerCase() : null;
+        this.password = password;
+        this.rol = rol === "Organizador" ? "Organizador" : "Comprador";
+        this.nombreProductora = nombreProductora ? nombreProductora.trim() : null;
+        this.razonSocial = razonSocial ? razonSocial.trim() : null;
         this.favoritos = Array.isArray(favoritos) ? [...favoritos] : [];
     }
 
     get nombreCompleto() {
-        return `${this.nombre} ${this.apellido}`;
+        if (this.nombreProductora && this.nombreProductora.trim().length > 0) {
+            return this.nombreProductora.trim();
+        }
+        return `${this.nombre} ${this.apellido}`.trim();
     }
 
     agregarFavorito(evento) {
@@ -74,7 +85,11 @@ export class Usuario {
             id: this.id,
             nombre: this.nombre,
             apellido: this.apellido,
+            nombreCompleto: this.nombreCompleto,
             email: this.email,
+            rol: this.rol,
+            nombreProductora: this.nombreProductora,
+            razonSocial: this.razonSocial,
             favoritos: this.favoritos.map(fav => (typeof fav === "object" && fav.id ? fav.id : fav))
         };
     }

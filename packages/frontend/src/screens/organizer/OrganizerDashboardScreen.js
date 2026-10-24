@@ -16,6 +16,7 @@ import { StatCard } from '../../components/organizer/StatCard.js';
 import { QuickAction } from '../../components/organizer/QuickAction.js';
 import { EventCard } from '../../components/events/EventCard.js';
 import { PrimaryButton } from '../../components/common/PrimaryButton.js';
+import { NotificationBell } from '../../components/notifications/NotificationBell.js';
 import { USER_ROLES } from '../../constants/roles.js';
 
 export const OrganizerDashboardScreen = ({ navigation }) => {
@@ -50,17 +51,20 @@ export const OrganizerDashboardScreen = ({ navigation }) => {
       <ScreenHeader
         showLogo
         rightAction={
-          <TouchableOpacity
-            style={styles.switchBadge}
-            onPress={() => {
-              switchRole(USER_ROLES.BUYER);
-              navigation.navigate('BuyerTabs');
-            }}
-            accessibilityLabel="Volver al modo Comprador"
-          >
-            <Ionicons name="swap-horizontal" size={14} color={COLORS.primary} />
-            <Text style={styles.switchBadgeText}>Modo Comprador</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <NotificationBell />
+            <TouchableOpacity
+              style={styles.switchBadge}
+              onPress={() => {
+                switchRole(USER_ROLES.BUYER);
+                navigation.navigate('BuyerTabs');
+              }}
+              accessibilityLabel="Volver al modo Comprador"
+            >
+              <Ionicons name="swap-horizontal" size={14} color={COLORS.primary} />
+              <Text style={styles.switchBadgeText}>Comprador</Text>
+            </TouchableOpacity>
+          </View>
         }
       />
 

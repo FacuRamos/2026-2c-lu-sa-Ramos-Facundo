@@ -20,7 +20,7 @@ export const FavoritesScreen = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScreenHeader title="Favoritos" />
+      <ScreenHeader title="Favoritos" showNotificationBell={true} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

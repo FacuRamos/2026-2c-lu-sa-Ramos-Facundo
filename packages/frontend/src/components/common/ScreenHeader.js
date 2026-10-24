@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, FONTS, RADIUS } from '../../constants/theme.js';
+import { NotificationBell } from '../notifications/NotificationBell.js';
 
 export const ScreenHeader = ({
   title,
@@ -10,7 +11,15 @@ export const ScreenHeader = ({
   rightAction,
   showLogo = false,
   subtitle,
+  showNotificationBell = false,
 }) => {
+  const resolvedRightAction =
+    rightAction !== undefined
+      ? rightAction
+      : showNotificationBell || (!showBack && showLogo)
+      ? <NotificationBell />
+      : null;
+
   return (
     <View style={styles.header}>
       <View style={styles.leftContainer}>
@@ -42,7 +51,7 @@ export const ScreenHeader = ({
       </View>
 
       <View style={styles.rightContainer}>
-        {rightAction || null}
+        {resolvedRightAction}
       </View>
     </View>
   );

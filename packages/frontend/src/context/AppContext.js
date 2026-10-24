@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { USER_ROLES, DEFAULT_USERS } from '../constants/roles.js';
 import { apiService } from '../services/apiService.js';
+import { secureStoreService, SECURE_KEYS } from '../services/secureStoreService.js';
 
 const AppContext = createContext(null);
 
 export const AppProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(USER_ROLES.BUYER);
   const [currentUser, setCurrentUser] = useState(DEFAULT_USERS.buyer);
+  const [token, setToken] = useState('demo-token-buyer');
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);
   const [purchases, setPurchases] = useState([]);
@@ -14,6 +16,26 @@ export const AppProvider = ({ children }) => {
   const [organizerStats, setOrganizerStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Inicializar sesión desde Hardware Keystore (expo-secure-store)
+  useEffect(() => {
+    async function restoreSession() {
+      try {
+        const savedUser = await secureStoreService.getObject(SECURE_KEYS.USER_DATA);
+        const savedToken = await secureStoreService.getItem(SECURE_KEYS.AUTH_TOKEN);
+        if (savedUser) {
+          setCurrentUser(savedUser);
+          setUserRole(savedUser.rol === USER_ROLES.ORGANIZER ? USER_ROLES.ORGANIZER : USER_ROLES.BUYER);
+        }
+        if (savedToken) {
+          setToken(savedToken);
+        }
+      } catch (e) {
+        console.warn('Error al restaurar sesión segura:', e);
+      }
+    }
+    restoreSession();
+  }, []);
 
   // Cargar datos iniciales
   const loadInitialData = useCallback(async () => {
@@ -54,10 +76,81 @@ export const AppProvider = ({ children }) => {
     if (newRole === USER_ROLES.ORGANIZER) {
       setUserRole(USER_ROLES.ORGANIZER);
       setCurrentUser(DEFAULT_USERS.organizer);
+      secureStoreService.setObject(SECURE_KEYS.USER_DATA, DEFAULT_USERS.organizer);
     } else {
       setUserRole(USER_ROLES.BUYER);
       setCurrentUser(DEFAULT_USERS.buyer);
+      secureStoreService.setObject(SECURE_KEYS.USER_DATA, DEFAULT_USERS.buyer);
     }
+  }, []);
+
+  // Métodos de Autenticación y Sesión Segura
+  const loginDemo = useCallback(async (rol = 'Comprador') => {
+    setIsLoading(true);
+    try {
+      const res = await apiService.loginDemo(rol);
+      setCurrentUser(res.usuario);
+      setUserRole(res.usuario.rol === USER_ROLES.ORGANIZER ? USER_ROLES.ORGANIZER : USER_ROLES.BUYER);
+      setToken(res.token);
+      await secureStoreService.setObject(SECURE_KEYS.USER_DATA, res.usuario);
+      await secureStoreService.setItem(SECURE_KEYS.AUTH_TOKEN, res.token);
+      return res;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const login = useCallback(async ({ email, password, rolSolicitado }) => {
+    setIsLoading(true);
+    try {
+      const res = await apiService.login({ email, password, rolSolicitado });
+      setCurrentUser(res.usuario);
+      setUserRole(res.usuario.rol === USER_ROLES.ORGANIZER ? USER_ROLES.ORGANIZER : USER_ROLES.BUYER);
+      setToken(res.token);
+      await secureStoreService.setObject(SECURE_KEYS.USER_DATA, res.usuario);
+      await secureStoreService.setItem(SECURE_KEYS.AUTH_TOKEN, res.token);
+      return res;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const registerBuyer = useCallback(async (data) => {
+    setIsLoading(true);
+    try {
+      const res = await apiService.registerBuyer(data);
+      setCurrentUser(res.usuario);
+      setUserRole(USER_ROLES.BUYER);
+      setToken(res.token);
+      await secureStoreService.setObject(SECURE_KEYS.USER_DATA, res.usuario);
+      await secureStoreService.setItem(SECURE_KEYS.AUTH_TOKEN, res.token);
+      return res;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const registerOrganizer = useCallback(async (data) => {
+    setIsLoading(true);
+    try {
+      const res = await apiService.registerOrganizer(data);
+      setCurrentUser(res.usuario);
+      setUserRole(USER_ROLES.ORGANIZER);
+      setToken(res.token);
+      await secureStoreService.setObject(SECURE_KEYS.USER_DATA, res.usuario);
+      await secureStoreService.setItem(SECURE_KEYS.AUTH_TOKEN, res.token);
+      return res;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    await secureStoreService.deleteItem(SECURE_KEYS.USER_DATA);
+    await secureStoreService.deleteItem(SECURE_KEYS.AUTH_TOKEN);
+    setCurrentUser(DEFAULT_USERS.buyer);
+    setUserRole(USER_ROLES.BUYER);
+    setToken(null);
   }, []);
 
   // Favoritos
@@ -96,6 +189,29 @@ export const AppProvider = ({ children }) => {
         setPurchases(prev => [nuevaCompra, ...prev]);
         const updatedEvents = await apiService.getEventos();
         setEvents(updatedEvents);
+
+        // Disparar notificaciones para comprador y organizador
+        try {
+          await apiService.crearNotificacion({
+            usuarioId: currentUser.id,
+            rolDestino: 'Comprador',
+            tipo: 'COMPRA_CONFIRMADA',
+            titulo: '¡Compra confirmada!',
+            mensaje: `Tu compra para "${nuevaCompra.eventoTitulo || 'el evento'}" fue confirmada con éxito.`,
+            entidadId: nuevaCompra.id,
+          });
+          await apiService.crearNotificacion({
+            usuarioId: 'usr-org-1',
+            rolDestino: 'Organizador',
+            tipo: 'NUEVA_VENTA',
+            titulo: 'Nueva entrada vendida',
+            mensaje: `${currentUser.nombre} compró ${cantidad} entrada(s) para "${nuevaCompra.eventoTitulo || 'tu evento'}".`,
+            entidadId: nuevaCompra.eventoId,
+          });
+        } catch (e) {
+          console.warn('Error al disparar notificación de compra:', e);
+        }
+
         return nuevaCompra;
       } finally {
         setIsLoading(false);
@@ -114,6 +230,28 @@ export const AppProvider = ({ children }) => {
         );
         const updatedEvents = await apiService.getEventos();
         setEvents(updatedEvents);
+
+        try {
+          await apiService.crearNotificacion({
+            usuarioId: currentUser.id,
+            rolDestino: 'Comprador',
+            tipo: 'COMPRA_CANCELADA',
+            titulo: 'Compra cancelada',
+            mensaje: 'Tu compra fue cancelada y el cupo ha sido restituido.',
+            entidadId: compraId,
+          });
+          await apiService.crearNotificacion({
+            usuarioId: 'usr-org-1',
+            rolDestino: 'Organizador',
+            tipo: 'COMPRA_CANCELADA',
+            titulo: 'Compra cancelada por el comprador',
+            mensaje: `Una compra de ${currentUser.nombre} fue cancelada. Cupo reintegrado.`,
+            entidadId: compraId,
+          });
+        } catch (e) {
+          console.warn('Error al disparar notificación de cancelación:', e);
+        }
+
         return compraActualizada;
       } finally {
         setIsLoading(false);
@@ -148,6 +286,20 @@ export const AppProvider = ({ children }) => {
           return p;
         })
       );
+
+      try {
+        const rolDestino = userRole === USER_ROLES.BUYER ? 'Organizador' : 'Comprador';
+        await apiService.crearNotificacion({
+          rolDestino,
+          tipo: 'NUEVO_MENSAJE_CHAT',
+          titulo: `Nuevo mensaje de ${remitenteNombre}`,
+          mensaje: texto,
+          entidadId: compraId,
+        });
+      } catch (e) {
+        console.warn('Error al disparar notificación de chat:', e);
+      }
+
       return nuevoMsg;
     },
     [currentUser, userRole]
@@ -206,7 +358,13 @@ export const AppProvider = ({ children }) => {
   const value = {
     userRole,
     currentUser,
+    token,
     switchRole,
+    loginDemo,
+    login,
+    registerBuyer,
+    registerOrganizer,
+    logout,
     events,
     categories,
     purchases,

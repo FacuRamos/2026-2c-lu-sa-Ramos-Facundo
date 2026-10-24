@@ -13,6 +13,12 @@ import { PurchaseDetailScreen } from '../screens/buyer/PurchaseDetailScreen.js';
 import { ChatScreen } from '../screens/buyer/ChatScreen.js';
 import { ReviewScreen } from '../screens/buyer/ReviewScreen.js';
 
+// Common & Auth Screens
+import { NotificationScreen } from '../screens/common/NotificationScreen.js';
+import { LoginScreen } from '../screens/auth/LoginScreen.js';
+import { RegisterBuyerScreen } from '../screens/auth/RegisterBuyerScreen.js';
+import { RegisterOrganizerScreen } from '../screens/auth/RegisterOrganizerScreen.js';
+
 // Organizer Screens
 import { OrganizerDashboardScreen } from '../screens/organizer/OrganizerDashboardScreen.js';
 import { CreateEventScreen } from '../screens/organizer/CreateEventScreen.js';
@@ -24,6 +30,7 @@ const Stack = createNativeStackNavigator();
 
 export const RootNavigator = () => {
   const { userRole } = useApp();
+  const MainComponent = userRole === USER_ROLES.ORGANIZER ? OrganizerDashboardScreen : BuyerTabNavigator;
 
   return (
     <NavigationContainer>
@@ -37,8 +44,18 @@ export const RootNavigator = () => {
           userRole === USER_ROLES.ORGANIZER ? 'OrganizerDashboard' : 'BuyerTabs'
         }
       >
-        {/* Buyer Flows */}
+        {/* Main Entry Points */}
+        <Stack.Screen name="MainTabs" component={MainComponent} />
         <Stack.Screen name="BuyerTabs" component={BuyerTabNavigator} />
+        <Stack.Screen name="OrganizerDashboard" component={OrganizerDashboardScreen} />
+
+        {/* Auth & Notifications */}
+        <Stack.Screen name="Notification" component={NotificationScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="RegisterBuyer" component={RegisterBuyerScreen} />
+        <Stack.Screen name="RegisterOrganizer" component={RegisterOrganizerScreen} />
+
+        {/* Buyer Flows */}
         <Stack.Screen name="Search" component={SearchScreen} />
         <Stack.Screen name="EventDetail" component={EventDetailScreen} />
         <Stack.Screen name="TicketSelection" component={TicketSelectionScreen} />
@@ -47,7 +64,6 @@ export const RootNavigator = () => {
         <Stack.Screen name="Review" component={ReviewScreen} />
 
         {/* Organizer Flows */}
-        <Stack.Screen name="OrganizerDashboard" component={OrganizerDashboardScreen} />
         <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
         <Stack.Screen name="ManageEvent" component={ManageEventScreen} />
         <Stack.Screen name="OrganizerSales" component={OrganizerSalesScreen} />

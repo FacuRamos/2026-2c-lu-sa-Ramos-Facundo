@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, FONTS, RADIUS } from '../../constants/theme.js';
 import { USER_ROLES } from '../../constants/roles.js';
 import { ScreenHeader } from '../../components/common/ScreenHeader.js';
+import { NotificationBell } from '../../components/notifications/NotificationBell.js';
 import { SearchBar } from '../../components/common/SearchBar.js';
 import { CategorySelector } from '../../components/common/CategorySelector.js';
 import { EventCard } from '../../components/events/EventCard.js';
@@ -59,13 +60,14 @@ export const HomeScreen = ({ navigation }) => {
             >
               <Ionicons name="search-outline" size={20} color={COLORS.textPrimary} />
             </TouchableOpacity>
+            <NotificationBell />
             <TouchableOpacity
               onPress={handleSwitchToOrganizer}
               style={styles.roleBadge}
               accessibilityLabel="Cambiar a Modo Organizador"
             >
               <Ionicons name="swap-horizontal" size={14} color={COLORS.primary} />
-              <Text style={styles.roleText}>Modo Org</Text>
+              <Text style={styles.roleText}>Org</Text>
             </TouchableOpacity>
           </View>
         }
