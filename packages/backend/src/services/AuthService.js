@@ -1,8 +1,12 @@
+import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { Usuario } from '../domain/entities/usuario.js';
 import { usuarioRepository as defaultRepo } from '../repositories/UsuarioRepository.js';
-import { ConflictError, UnauthorizedError } from './errors/ServiceError.js';
+import { ConflictError, UnauthorizedError, NotFoundError } from './errors/ServiceError.js';
 import { mapUsuarioDto } from './mappers.js';
+
+export const JWT_SECRET = process.env.JWT_SECRET || 'dds-utn-jwt-secret-2026-key';
+export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
 
 export class AuthService {
     constructor({ usuarioRepo = defaultRepo } = {}) {
@@ -10,18 +14,18 @@ export class AuthService {
     }
 
     _generarTokens(usuario) {
-        const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-        const payload = Buffer.from(JSON.stringify({
+        const payload = {
             sub: usuario.id,
             email: usuario.email,
+            role: usuario.rol,
             rol: usuario.rol,
-            nombreCompleto: usuario.nombreCompleto,
-            iat: Math.floor(Date.now() / 1000),
-            exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24)
-        })).toString('base64url');
-        const signature = crypto.createHmac('sha256', 'ai-ticket-it-secret-2026').update(`${header}.${payload}`).digest('base64url');
-        
-        const token = `${header}.${payload}.${signature}`;
+            nombreCompleto: usuario.nombreCompleto
+        };
+
+        const token = jwt.sign(payload, JWT_SECRET, {
+            expiresIn: JWT_EXPIRES_IN
+        });
+
         const refreshToken = crypto.randomUUID();
 
         return { token, refreshToken };
@@ -33,11 +37,12 @@ export class AuthService {
             throw new ConflictError(`El email "${data.email}" ya se encuentra registrado`);
         }
 
+        const passwordHash = await Usuario.hashPassword(data.password);
         const usuario = new Usuario({
             nombre: data.nombre,
             apellido: data.apellido,
             email: data.email,
-            password: data.password,
+            password: passwordHash,
             rol: 'Comprador'
         });
 
@@ -57,13 +62,14 @@ export class AuthService {
             throw new ConflictError(`El email "${data.email}" ya se encuentra registrado`);
         }
 
+        const passwordHash = await Usuario.hashPassword(data.password);
         const usuario = new Usuario({
             nombre: data.nombre,
             apellido: data.apellido,
             nombreProductora: data.nombreProductora,
             razonSocial: data.razonSocial || null,
             email: data.email,
-            password: data.password,
+            password: passwordHash,
             rol: 'Organizador'
         });
 
@@ -85,7 +91,8 @@ export class AuthService {
             throw err;
         }
 
-        if (usuario.password && usuario.password !== password) {
+        const passwordValida = await usuario.verificarPassword(password);
+        if (!passwordValida) {
             const err = new UnauthorizedError('Credenciales inválidas');
             err.status = 401;
             throw err;
@@ -111,6 +118,7 @@ export class AuthService {
         let usuario = await this.usuarioRepo.findById(demoId);
 
         if (!usuario) {
+            const defaultHash = await Usuario.hashPassword('demo123');
             if (isOrg) {
                 usuario = new Usuario({
                     id: demoId,
@@ -118,7 +126,7 @@ export class AuthService {
                     apellido: 'Producciones',
                     nombreProductora: 'Luna Producciones',
                     email: 'contacto@lunaproducciones.com',
-                    password: 'demo',
+                    password: defaultHash,
                     rol: 'Organizador'
                 });
             } else {
@@ -127,7 +135,7 @@ export class AuthService {
                     nombre: 'Martina',
                     apellido: 'García',
                     email: 'martina.garcia@example.com',
-                    password: 'demo',
+                    password: defaultHash,
                     rol: 'Comprador'
                 });
             }
@@ -140,6 +148,14 @@ export class AuthService {
             refreshToken,
             usuario: mapUsuarioDto(usuario)
         };
+    }
+
+    async obtenerUsuarioActual(id) {
+        const usuario = await this.usuarioRepo.findById(id);
+        if (!usuario) {
+            throw new NotFoundError('Usuario no encontrado');
+        }
+        return mapUsuarioDto(usuario);
     }
 }
 

@@ -1,6 +1,7 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
+import { authService } from '../src/services/AuthService.js';
 import {
     usuarioRepository,
     categoriaRepository,
@@ -95,6 +96,10 @@ describe('HTTP API End-to-End Integration Tests', () => {
         });
         const comprador = await compRes.json();
 
+        // Generar tokens Bearer con roles según SPEC-009 / Clase Semana 10
+        const { token: orgToken } = authService._generarTokens({ id: organizador.id, email: organizador.email, rol: 'Organizador', nombreCompleto: 'Productora Rock' });
+        const { token: compToken } = authService._generarTokens({ id: comprador.id, email: comprador.email, rol: 'Comprador', nombreCompleto: 'Fan Musica' });
+
         // 2. Crear categoría
         const catRes = await fetch(`${baseUrl}/api/categorias`, {
             method: 'POST',
@@ -106,7 +111,10 @@ describe('HTTP API End-to-End Integration Tests', () => {
         // 3. Crear evento (con multimedia como rutas relativas, permitidas por UML)
         const evRes = await fetch(`${baseUrl}/api/eventos`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${orgToken}`
+            },
             body: JSON.stringify({
                 nombre: 'Mega Recital 2026',
                 descripcion: 'El mejor festival de música en vivo',
@@ -137,7 +145,10 @@ describe('HTTP API End-to-End Integration Tests', () => {
         // 6. Realizar compra (CU12)
         const compraRes = await fetch(`${baseUrl}/api/compras`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${compToken}`
+            },
             body: JSON.stringify({
                 compradorId: comprador.id,
                 eventoId: evento.id,
@@ -176,7 +187,10 @@ describe('HTTP API End-to-End Integration Tests', () => {
         // Sin usuarioId -> 400 Bad Request
         const resUtilizarSinId = await fetch(`${baseUrl}/api/compras/${compra.id}/utilizar`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${orgToken}`
+            },
             body: JSON.stringify({})
         });
         assert.strictEqual(resUtilizarSinId.status, 400);
@@ -184,7 +198,10 @@ describe('HTTP API End-to-End Integration Tests', () => {
         // Con usuario no organizador -> 403 Forbidden
         const resUtilizarIntruso = await fetch(`${baseUrl}/api/compras/${compra.id}/utilizar`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${compToken}`
+            },
             body: JSON.stringify({ usuarioId: comprador.id })
         });
         assert.strictEqual(resUtilizarIntruso.status, 403);
@@ -192,7 +209,10 @@ describe('HTTP API End-to-End Integration Tests', () => {
         // Con organizador legítimo -> 200 OK
         const resUtilizarOk = await fetch(`${baseUrl}/api/compras/${compra.id}/utilizar`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${orgToken}`
+            },
             body: JSON.stringify({ usuarioId: organizador.id })
         });
         assert.strictEqual(resUtilizarOk.status, 200);
@@ -202,7 +222,10 @@ describe('HTTP API End-to-End Integration Tests', () => {
         // 10. CU9: Crear reseña posterior al evento
         const reseniaRes = await fetch(`${baseUrl}/api/resenias`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${compToken}`
+            },
             body: JSON.stringify({
                 compradorId: comprador.id,
                 eventoId: evento.id,

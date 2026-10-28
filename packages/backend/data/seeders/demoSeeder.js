@@ -20,33 +20,45 @@ export async function seedDemoData() {
     await compraRepository.clear();
     await reseniaRepository.clear();
 
-    // 1. Usuarios
+    // 1. Usuarios con contraseña hasheada (Clase Semana 10)
+    const defaultPasswordHash = await Usuario.hashPassword('password123');
+
     const comprador1 = new Usuario({
         id: 'usr-comprador-1',
         nombre: 'Juan',
         apellido: 'Pérez',
-        email: 'juan.perez@example.com'
+        email: 'juan.perez@example.com',
+        password: defaultPasswordHash,
+        rol: 'Comprador'
     });
 
     const comprador2 = new Usuario({
         id: 'usr-comprador-2',
         nombre: 'Lucía',
         apellido: 'Gómez',
-        email: 'lucia.gomez@example.com'
+        email: 'lucia.gomez@example.com',
+        password: defaultPasswordHash,
+        rol: 'Comprador'
     });
 
     const org1 = new Usuario({
         id: 'usr-org-1',
         nombre: 'Productora',
         apellido: 'PopArt Music',
-        email: 'contacto@popart.com'
+        email: 'contacto@popart.com',
+        password: defaultPasswordHash,
+        rol: 'Organizador',
+        nombreProductora: 'PopArt Music'
     });
 
     const org2 = new Usuario({
         id: 'usr-org-2',
         nombre: 'Teatro',
         apellido: 'Avenida',
-        email: 'info@teatroavenida.com'
+        email: 'info@teatroavenida.com',
+        password: defaultPasswordHash,
+        rol: 'Organizador',
+        nombreProductora: 'Teatro Avenida'
     });
 
     await usuarioRepository.create(comprador1);

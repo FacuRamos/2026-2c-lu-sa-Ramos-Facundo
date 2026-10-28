@@ -161,4 +161,15 @@ export const authService = {
       throw err;
     }
   },
+
+  async getMe() {
+    try {
+      return await webApiCaller.get('/auth/me');
+    } catch (err) {
+      if (err instanceof NetworkError) {
+        return localStore.users[0] || null;
+      }
+      throw err;
+    }
+  },
 };

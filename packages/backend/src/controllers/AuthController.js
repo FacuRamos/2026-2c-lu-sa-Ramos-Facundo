@@ -89,6 +89,19 @@ export class AuthController {
       next(err);
     }
   };
+
+  obtenerMe = async (req, res, next) => {
+    try {
+      const usuarioId = req.user?.sub;
+      if (!usuarioId) {
+        return res.status(401).json({ error: 'No autenticado', message: 'Token sin identificador de usuario' });
+      }
+      const usuario = await this.service.obtenerUsuarioActual(usuarioId);
+      res.status(200).json(usuario);
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 export const authController = new AuthController();

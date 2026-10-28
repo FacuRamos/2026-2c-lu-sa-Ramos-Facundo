@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import bcrypt from "bcrypt";
 import { DomainValidationError } from "../errors/DomainError.js";
 
 export class Usuario {
@@ -78,6 +79,21 @@ export class Usuario {
             const id = typeof fav === "object" ? fav.id : fav;
             return id === targetId;
         });
+    }
+
+    static async hashPassword(plainText, saltRounds = 10) {
+        if (!plainText || typeof plainText !== "string") {
+            throw new DomainValidationError("La contraseña a hashear debe ser una cadena válida");
+        }
+        return await bcrypt.hash(plainText, saltRounds);
+    }
+
+    async verificarPassword(plainText) {
+        if (!plainText || !this.password) return false;
+        if (typeof this.password === 'string' && (this.password.startsWith('$2a$') || this.password.startsWith('$2b$'))) {
+            return await bcrypt.compare(plainText, this.password);
+        }
+        return plainText === this.password;
     }
 
     toJSON() {

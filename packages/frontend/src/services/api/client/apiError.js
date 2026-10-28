@@ -58,10 +58,10 @@ export function createApiErrorFromResponse(status, body = null, originalError = 
       message = body.details.map((d) => d.message || d).join(', ');
     } else if (body.details?.issues && Array.isArray(body.details.issues) && body.details.issues.length > 0) {
       message = body.details.issues.map((i) => i.message).join(', ');
-    } else if (body.error && typeof body.error === 'string') {
-      message = body.error;
     } else if (body.message && typeof body.message === 'string') {
       message = body.message;
+    } else if (body.error && typeof body.error === 'string') {
+      message = body.error;
     }
   }
 
