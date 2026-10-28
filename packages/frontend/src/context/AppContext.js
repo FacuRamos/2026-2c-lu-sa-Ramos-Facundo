@@ -279,6 +279,22 @@ export const AppProvider = ({ children }) => {
     [currentUser.id]
   );
 
+  const markPurchaseUtilized = useCallback(
+    async (compraId) => {
+      setIsLoading(true);
+      try {
+        const compraActualizada = await apiService.marcarEntradaUtilizada(compraId, currentUser.id);
+        setPurchases(prev =>
+          prev.map(p => (p.id === compraId ? { ...p, estado: 'UTILIZADA' } : p))
+        );
+        return compraActualizada;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [currentUser.id]
+  );
+
   // Chat
   const sendMessage = useCallback(
     async (compraId, texto) => {
@@ -395,6 +411,7 @@ export const AppProvider = ({ children }) => {
     toggleFavorite,
     createPurchase,
     cancelPurchase,
+    markPurchaseUtilized,
     sendMessage,
     createReview,
     createEvent,

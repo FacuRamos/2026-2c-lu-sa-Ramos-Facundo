@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS, SPACING, RADIUS, FONTS, SHADOWS } from '../../constants/theme.js';
 import { StatusBadge } from '../common/StatusBadge.js';
 
-export const SaleItem = ({ name, type, price, status }) => {
+export const SaleItem = ({ name, type, price, status, onPress }) => {
   const getInitials = (str) => {
     if (!str) return 'U';
     const parts = str.trim().split(' ');
@@ -15,7 +15,7 @@ export const SaleItem = ({ name, type, price, status }) => {
     ? `$${price.toLocaleString('es-AR')}`
     : price;
 
-  return (
+  const content = (
     <View style={styles.container}>
       <View style={styles.avatarCircle}>
         <Text style={styles.avatarText}>{getInitials(name)}</Text>
@@ -29,6 +29,16 @@ export const SaleItem = ({ name, type, price, status }) => {
       <StatusBadge status={status} size="sm" />
     </View>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 };
 
 const styles = StyleSheet.create({

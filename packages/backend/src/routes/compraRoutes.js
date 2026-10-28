@@ -20,7 +20,9 @@ router.get('/:id/mensajes', async (req, res, next) => {
 });
 
 router.post('/:id/cancelar', authMiddleware, requireRole('Comprador'), compraController.cancelar);
+router.patch('/:id/cancelar', authMiddleware, requireRole('Comprador'), compraController.cancelar);
 router.post('/:id/utilizar', authMiddleware, requireRole('Organizador'), compraController.marcarUtilizada);
+router.patch('/:id/utilizar', authMiddleware, requireRole('Organizador'), compraController.marcarUtilizada);
 router.post('/:id/mensajes', authMiddleware, compraController.enviarMensaje);
 
 export default router;

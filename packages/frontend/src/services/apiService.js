@@ -75,6 +75,10 @@ class ApiService {
     return purchasesService.cancelarCompra(compraId, usuarioId);
   }
 
+  async marcarEntradaUtilizada(compraId, usuarioId) {
+    return purchasesService.marcarUtilizada(compraId, usuarioId);
+  }
+
   async getComprasByEvento(eventoId, organizadorId) {
     return purchasesService.getComprasByEvento(eventoId, organizadorId);
   }

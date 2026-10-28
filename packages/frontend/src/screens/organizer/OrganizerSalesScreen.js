@@ -58,6 +58,39 @@ export const OrganizerSalesScreen = ({ route, navigation }) => {
     return s.estado.toUpperCase() === activeTab.toUpperCase();
   });
 
+  const handlePressSale = (sale) => {
+    if (sale.estado === 'UTILIZADA') {
+      Alert.alert('Información', 'Esta entrada ya fue ingresada y utilizada en el evento.');
+      return;
+    }
+    if (sale.estado === 'CANCELADA') {
+      Alert.alert('Información', 'Esta compra fue cancelada.');
+      return;
+    }
+
+    Alert.alert(
+      'Control de Acceso',
+      `¿Deseás validar el ingreso de ${sale.compradorNombre || 'el comprador'} y marcar la entrada como UTILIZADA?`,
+      [
+        { text: 'Volver', style: 'cancel' },
+        {
+          text: 'Marcar como Utilizada',
+          onPress: async () => {
+            try {
+              await apiService.marcarEntradaUtilizada(sale.id, currentUser.id);
+              setSales((prev) =>
+                prev.map((s) => (s.id === sale.id ? { ...s, estado: 'UTILIZADA' } : s))
+              );
+              Alert.alert('¡Ingreso validado!', 'La entrada fue marcada como UTILIZADA exitosamente.');
+            } catch (err) {
+              Alert.alert('Error', err.message || 'No se pudo validar la entrada');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScreenHeader
@@ -112,6 +145,7 @@ export const OrganizerSalesScreen = ({ route, navigation }) => {
               type={`${sale.tipoEntradaNombre} · ${sale.cantidad} ${sale.cantidad === 1 ? 'entrada' : 'entradas'}`}
               price={sale.precioTotal}
               status={sale.estado}
+              onPress={() => handlePressSale(sale)}
             />
           ))
         ) : (

@@ -214,7 +214,20 @@ export const ManageEventScreen = ({ route, navigation }) => {
                     styles.statusBtn,
                     isSelected ? styles.statusBtnSelected : styles.statusBtnDefault,
                   ]}
-                  onPress={() => setTicketFlowStatus(st)}
+                  onPress={async () => {
+                    setTicketFlowStatus(st);
+                    if (st === 'UTILIZADA') {
+                      const targetCompra = compras[0];
+                      if (targetCompra?.id) {
+                        try {
+                          await apiService.marcarEntradaUtilizada(targetCompra.id, currentUser?.id);
+                          Alert.alert('¡Entrada validada!', `La compra de ${targetCompra.compradorNombre || 'el comprador'} fue marcada como UTILIZADA.`);
+                        } catch (err) {
+                          Alert.alert('Error', err.message || 'No se pudo marcar la entrada como utilizada');
+                        }
+                      }
+                    }
+                  }}
                   activeOpacity={0.8}
                 >
                   <Text

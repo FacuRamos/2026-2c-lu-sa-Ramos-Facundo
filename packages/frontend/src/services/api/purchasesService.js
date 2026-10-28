@@ -164,7 +164,8 @@ export const purchasesService = {
 
   async cancelarCompra(compraId, usuarioId) {
     try {
-      return await webApiCaller.patch(`/compras/${compraId}/cancelar`, { usuarioId });
+      const res = await webApiCaller.post(`/compras/${compraId}/cancelar`, { usuarioId });
+      return adaptCompra(res);
     } catch (err) {
       if (err instanceof NetworkError) {
         const compra = localStore.purchases.find((p) => p.id === compraId);
@@ -193,7 +194,34 @@ export const purchasesService = {
           motivo: 'Cancelada por el usuario',
         });
 
-        return compra;
+        return adaptCompra(compra);
+      }
+      throw err;
+    }
+  },
+
+  async marcarUtilizada(compraId, usuarioId) {
+    try {
+      const res = await webApiCaller.post(`/compras/${compraId}/utilizar`, { usuarioId });
+      return adaptCompra(res);
+    } catch (err) {
+      if (err instanceof NetworkError) {
+        const compra = localStore.purchases.find((p) => p.id === compraId);
+        if (!compra) throw new Error(`Compra con id ${compraId} no encontrada`);
+
+        if (compra.estado !== 'CONFIRMADA') {
+          throw new Error(`Solo se puede marcar como utilizada una compra CONFIRMADA`);
+        }
+
+        compra.estado = 'UTILIZADA';
+        compra.historialEstados = compra.historialEstados || [];
+        compra.historialEstados.push({
+          estado: 'UTILIZADA',
+          fecha: new Date().toISOString(),
+          motivo: 'Entrada utilizada en el evento',
+        });
+
+        return adaptCompra(compra);
       }
       throw err;
     }
