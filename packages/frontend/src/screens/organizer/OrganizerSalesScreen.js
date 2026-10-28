@@ -34,7 +34,7 @@ export const OrganizerSalesScreen = ({ route, navigation }) => {
         setLoading(true);
         let list;
         if (eventId) {
-          list = await apiService.getComprasByEvento(eventId);
+          list = await apiService.getComprasByEvento(eventId, currentUser?.id);
         } else {
           list = await apiService.getComprasByOrganizador(currentUser.id);
         }

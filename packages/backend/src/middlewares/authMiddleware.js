@@ -31,3 +31,17 @@ export function authMiddleware(req, res, next) {
         });
     }
 }
+
+export function optionalAuthMiddleware(req, res, next) {
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET);
+            req.user = decoded;
+        } catch {
+            // Ignorar token inválido en rutas con autenticación opcional
+        }
+    }
+    next();
+}

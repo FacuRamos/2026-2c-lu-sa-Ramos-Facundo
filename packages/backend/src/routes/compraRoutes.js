@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { compraController } from '../controllers/CompraController.js';
-import { authMiddleware } from '../middlewares/authMiddleware.js';
+import { authMiddleware, optionalAuthMiddleware } from '../middlewares/authMiddleware.js';
 import { requireRole } from '../middlewares/requireRole.js';
 
 const router = Router();
@@ -8,7 +8,7 @@ const router = Router();
 router.post('/', authMiddleware, requireRole('Comprador'), compraController.realizarCompra);
 router.get('/comprador/:compradorId', compraController.obtenerPorComprador);
 router.get('/usuario/:compradorId', compraController.obtenerPorComprador);
-router.get('/evento/:eventoId', compraController.obtenerPorEvento);
+router.get('/evento/:eventoId', optionalAuthMiddleware, compraController.obtenerPorEvento);
 router.get('/:id', compraController.obtenerPorId);
 router.get('/:id/mensajes', async (req, res, next) => {
     try {

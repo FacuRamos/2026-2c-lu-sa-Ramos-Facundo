@@ -1,6 +1,7 @@
 import { webApiCaller } from './client/webApiCaller.js';
 import { NetworkError } from './client/apiError.js';
 import { localStore } from './localStore.js';
+import { secureStoreService, SECURE_KEYS } from '../secureStoreService.js';
 
 export function adaptCompra(dto) {
   if (!dto) return null;
@@ -88,7 +89,14 @@ export const purchasesService = {
 
   async getComprasByEvento(eventoId, organizadorId = null) {
     try {
-      const query = organizadorId ? { organizadorId } : {};
+      let orgId = organizadorId;
+      if (!orgId) {
+        const storedUser = await secureStoreService.getObject(SECURE_KEYS.USER_DATA);
+        if (storedUser?.id) {
+          orgId = storedUser.id;
+        }
+      }
+      const query = orgId ? { organizadorId: orgId } : {};
       const res = await webApiCaller.get(`/compras/evento/${eventoId}`, { query });
       const rawList = Array.isArray(res) ? res : (res?.compras || []);
       return rawList.map(adaptCompra);
