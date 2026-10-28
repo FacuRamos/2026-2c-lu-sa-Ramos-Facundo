@@ -54,6 +54,14 @@ export const PurchaseDetailScreen = ({ route, navigation }) => {
   const isUtilizada = purchase.estado === 'UTILIZADA';
   const isCancelada = purchase.estado === 'CANCELADA';
 
+  const rawPrecioTotal = Number(purchase.precioTotal ?? purchase.total ?? 0);
+  const formattedTotal = isNaN(rawPrecioTotal) ? '$0' : `$${rawPrecioTotal.toLocaleString('es-AR')}`;
+  const displayFecha = purchase.eventoFechaTexto || 'Fecha a confirmar';
+  const displayLugar = purchase.eventoLugar || 'Lugar a confirmar';
+  const displayTipoEntrada = purchase.tipoEntradaNombre || 'Entrada';
+  const displayImagen = purchase.eventoImagen || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=900&q=85';
+  const diasFaltantes = Number(purchase.diasRestantes ?? purchase.diasFaltantesParaEvento ?? 0);
+
   const handleCancel = () => {
     Alert.alert(
       'Cancelar compra',
@@ -95,11 +103,11 @@ export const PurchaseDetailScreen = ({ route, navigation }) => {
       >
         {/* Banner de la compra */}
         <View style={styles.bannerContainer}>
-          <Image source={{ uri: purchase.eventoImagen }} style={styles.bannerImage} resizeMode="cover" />
+          <Image source={{ uri: displayImagen }} style={styles.bannerImage} resizeMode="cover" />
           <View style={styles.bannerGradient}>
             <StatusBadge status={purchase.estado} />
             <Text style={styles.bannerTitle} numberOfLines={2}>
-              {purchase.eventoTitulo}
+              {purchase.eventoTitulo || 'Evento'}
             </Text>
           </View>
         </View>
@@ -109,7 +117,7 @@ export const PurchaseDetailScreen = ({ route, navigation }) => {
           <View style={styles.infoCard}>
             <Ionicons name="calendar-outline" size={16} color={COLORS.primary} />
             <View style={styles.infoTextCol}>
-              <Text style={styles.infoMainText}>{purchase.eventoFechaTexto}</Text>
+              <Text style={styles.infoMainText}>{displayFecha}</Text>
               <Text style={styles.infoSubText}>Fecha del evento</Text>
             </View>
           </View>
@@ -117,7 +125,7 @@ export const PurchaseDetailScreen = ({ route, navigation }) => {
           <View style={styles.infoCard}>
             <Ionicons name="location-outline" size={16} color={COLORS.primary} />
             <View style={styles.infoTextCol}>
-              <Text style={styles.infoMainText} numberOfLines={1}>{purchase.eventoLugar}</Text>
+              <Text style={styles.infoMainText} numberOfLines={1}>{displayLugar}</Text>
               <Text style={styles.infoSubText}>Lugar y acceso</Text>
             </View>
           </View>
@@ -129,10 +137,10 @@ export const PurchaseDetailScreen = ({ route, navigation }) => {
 
           <View style={styles.breakdownRow}>
             <Text style={styles.breakdownItem}>
-              {purchase.tipoEntradaNombre} × {purchase.cantidad}
+              {displayTipoEntrada} × {purchase.cantidad || 1}
             </Text>
             <Text style={styles.breakdownPrice}>
-              ${Number(purchase.precioTotal).toLocaleString('es-AR')}
+              {formattedTotal}
             </Text>
           </View>
 
@@ -141,7 +149,7 @@ export const PurchaseDetailScreen = ({ route, navigation }) => {
           <View style={styles.breakdownRow}>
             <Text style={styles.totalLabel}>Total abonado</Text>
             <Text style={styles.totalValue}>
-              ${Number(purchase.precioTotal).toLocaleString('es-AR')}
+              {formattedTotal}
             </Text>
           </View>
         </View>
@@ -158,11 +166,11 @@ export const PurchaseDetailScreen = ({ route, navigation }) => {
               <Ionicons name="close-circle" size={16} color={COLORS.accentRed} />
               <Text style={styles.noticeTextDanger}>Esta compra fue cancelada y el importe fue reintegrado.</Text>
             </View>
-          ) : purchase.diasRestantes > 0 ? (
+          ) : diasFaltantes > 0 ? (
             <View style={styles.noticeRow}>
               <Ionicons name="time-outline" size={16} color={COLORS.accentGreen} />
               <Text style={styles.noticeTextSuccess}>
-                Faltan {purchase.diasRestantes} días para el evento
+                Faltan {diasFaltantes} días para el evento
               </Text>
             </View>
           ) : (

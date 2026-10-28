@@ -48,6 +48,7 @@ const obtenerComprasPorEventoQuerySchema = z.object({
     organizadorId: z.string({ required_error: 'El organizadorId es obligatorio' })
         .trim()
         .min(1, 'El organizadorId no puede estar vacío')
+        .optional()
 });
 
 export class CompraController {
@@ -85,7 +86,12 @@ export class CompraController {
 
     obtenerPorEvento = async (req, res, next) => {
         try {
-            const { organizadorId } = validate(obtenerComprasPorEventoQuerySchema, req.query);
+            const orgIdFromToken = req.user?.sub || req.user?.id;
+            const queryData = validate(obtenerComprasPorEventoQuerySchema, req.query);
+            const organizadorId = queryData.organizadorId || orgIdFromToken;
+            if (!organizadorId) {
+                return res.status(400).json({ error: 'El organizadorId es obligatorio' });
+            }
             const resultado = await this.service.obtenerComprasPorEvento(req.params.eventoId, organizadorId);
             res.status(200).json(resultado);
         } catch (err) {

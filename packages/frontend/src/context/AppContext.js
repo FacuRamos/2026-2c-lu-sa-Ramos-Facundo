@@ -75,6 +75,13 @@ export const AppProvider = ({ children }) => {
   const switchRole = useCallback(async (newRole) => {
     const isOrg = newRole === USER_ROLES.ORGANIZER;
     const targetRole = isOrg ? USER_ROLES.ORGANIZER : USER_ROLES.BUYER;
+
+    // Si el usuario actual ya es una cuenta registrada con este rol, preservamos su identidad
+    if (currentUser && currentUser.rol === targetRole && !currentUser.id?.startsWith('usr-')) {
+      setUserRole(targetRole);
+      return;
+    }
+
     const targetUser = isOrg ? DEFAULT_USERS.organizer : DEFAULT_USERS.buyer;
 
     setUserRole(targetRole);
@@ -94,7 +101,7 @@ export const AppProvider = ({ children }) => {
     } catch {
       // Si falla login demo por offline, mantiene targetUser en memoria
     }
-  }, []);
+  }, [currentUser]);
 
   // Métodos de Autenticación y Sesión Segura
   const loginDemo = useCallback(async (rol = 'Comprador') => {

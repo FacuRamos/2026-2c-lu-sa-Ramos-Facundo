@@ -32,6 +32,12 @@ export function mapEventoSummaryDto(evento) {
     if (!evento) return null;
     const cat = evento.categoria;
     const org = evento.organizador;
+    const media = Array.isArray(evento.multimedia) && evento.multimedia.length > 0 ? evento.multimedia : [];
+    const imagen = media[0] || evento.imagen || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=900&q=85';
+    const fechaObj = evento.fecha instanceof Date ? evento.fecha : (evento.fecha ? new Date(evento.fecha) : null);
+    const fechaTexto = fechaObj && !isNaN(fechaObj.getTime())
+        ? fechaObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · 20:30 hs'
+        : 'Próximamente';
 
     return {
         id: evento.id,
@@ -39,13 +45,16 @@ export function mapEventoSummaryDto(evento) {
         descripcion: evento.descripcion,
         categoriaId: typeof cat === 'object' && cat !== null ? cat.id : cat,
         categoriaNombre: typeof cat === 'object' && cat !== null ? cat.nombre : null,
-        fecha: evento.fecha instanceof Date ? evento.fecha.toISOString() : evento.fecha,
+        fecha: fechaObj ? fechaObj.toISOString() : (evento.fecha || null),
+        fechaTexto,
+        ubicacion: evento.ubicacion || 'Buenos Aires',
+        imagen,
         organizadorId: typeof org === 'object' && org !== null ? org.id : org,
         organizadorNombre: typeof org === 'object' && org !== null ? (org.nombreCompleto || org.nombre) : 'Organizador',
         precioMinimo: typeof evento.obtenerPrecioMinimo === 'function' ? evento.obtenerPrecioMinimo() : (evento.precioMinimo ?? null),
         precioMaximo: typeof evento.obtenerPrecioMaximo === 'function' ? evento.obtenerPrecioMaximo() : (evento.precioMaximo ?? null),
         entradasDisponiblesTotales: typeof evento.totalEntradasDisponibles === 'function' ? evento.totalEntradasDisponibles() : (evento.entradasDisponiblesTotales ?? 0),
-        multimedia: evento.multimedia || []
+        multimedia: media
     };
 }
 
@@ -67,12 +76,25 @@ export function mapEventoDetailDto(evento) {
 export function mapMensajeDto(mensaje) {
     if (!mensaje) return null;
     const u = mensaje.usuario;
+    const uId = typeof u === 'object' && u !== null ? u.id : u;
+    const emisorNombre = typeof u === 'object' && u !== null ? (u.nombreCompleto || u.nombre) : 'Usuario';
+    const fechaEnvio = mensaje.enviado instanceof Date
+        ? mensaje.enviado
+        : (mensaje.enviado ? new Date(mensaje.enviado) : new Date());
+    const fechaTexto = !isNaN(fechaEnvio.getTime())
+        ? fechaEnvio.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+        : '';
+
     return {
         id: mensaje.id,
-        usuarioId: typeof u === 'object' && u !== null ? u.id : u,
-        emisor: typeof u === 'object' && u !== null ? (u.nombreCompleto || u.nombre) : 'Usuario',
+        usuarioId: uId,
+        remitenteId: uId,
+        emisor: emisorNombre,
+        remitenteNombre: emisorNombre,
         mensaje: mensaje.mensaje,
-        enviado: mensaje.enviado instanceof Date ? mensaje.enviado.toISOString() : mensaje.enviado
+        texto: mensaje.mensaje,
+        enviado: fechaEnvio.toISOString(),
+        fecha: fechaTexto
     };
 }
 
@@ -80,22 +102,35 @@ export function mapCompraDto(compra) {
     if (!compra) return null;
     const ev = compra.evento;
     const tipo = compra.tipoEntrada;
+    const evObj = typeof ev === 'object' && ev !== null ? ev : {};
+    const evFecha = evObj.fecha ? (evObj.fecha instanceof Date ? evObj.fecha : new Date(evObj.fecha)) : null;
+    const diasFaltantes = typeof compra.diasParaElEvento === 'function' ? compra.diasParaElEvento() : null;
+    const evMedia = Array.isArray(evObj.multimedia) && evObj.multimedia.length > 0 ? evObj.multimedia[0] : null;
+    const img = evMedia || evObj.imagen || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=900&q=85';
+    const fechaTexto = evFecha && !isNaN(evFecha.getTime())
+        ? evFecha.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · 20:30 hs'
+        : 'Próximamente';
 
     return {
         id: compra.id,
         estado: compra.estado,
-        diasFaltantesParaEvento: typeof compra.diasParaElEvento === 'function' ? compra.diasParaElEvento() : null,
+        diasFaltantesParaEvento: diasFaltantes,
+        diasRestantes: diasFaltantes ?? 0,
         fechaCompra: compra.fechaCompra instanceof Date ? compra.fechaCompra.toISOString() : compra.fechaCompra,
         cantidad: compra.cantidad,
         total: compra.total,
+        precioTotal: compra.total,
+        eventoTitulo: evObj.nombre || 'Evento',
+        eventoImagen: img,
+        eventoFechaTexto: fechaTexto,
+        eventoLugar: evObj.ubicacion || 'Buenos Aires',
+        tipoEntradaNombre: typeof tipo === 'object' && tipo !== null ? tipo.nombre : 'Entrada',
         evento: {
-            id: typeof ev === 'object' && ev !== null ? ev.id : ev,
-            nombre: typeof ev === 'object' && ev !== null ? ev.nombre : 'Evento',
-            fecha: typeof ev === 'object' && ev !== null && ev.fecha
-                ? (ev.fecha instanceof Date ? ev.fecha.toISOString() : ev.fecha)
-                : null,
-            organizadorNombre: typeof ev === 'object' && ev !== null && typeof ev.organizador === 'object' && ev.organizador !== null
-                ? (ev.organizador.nombreCompleto || ev.organizador.nombre)
+            id: evObj.id || ev,
+            nombre: evObj.nombre || 'Evento',
+            fecha: evFecha ? evFecha.toISOString() : null,
+            organizadorNombre: evObj.organizador
+                ? (typeof evObj.organizador === 'object' ? (evObj.organizador.nombreCompleto || evObj.organizador.nombre) : 'Organizador')
                 : 'Organizador'
         },
         entrada: {

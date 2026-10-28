@@ -37,14 +37,16 @@ export const OrganizerDashboardScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  // Mis eventos organizados
-  const myEvents = events.filter((e) => e.organizadorId === currentUser.id);
+  // Mis eventos organizados (estrictamente filtrados por el organizador autenticado)
+  const myEvents = events.filter((e) => (e.organizadorId || e.organizador?.id) === currentUser?.id);
 
-  const totalSold = organizerStats?.entradasVendidas || 1182;
-  const eventsCount = myEvents.length || 3;
-  const totalRevenue = organizerStats?.ingresosTotales
-    ? `$${(organizerStats.ingresosTotales / 1000000).toFixed(1)}M`
-    : '$24.5M';
+  const totalSold = organizerStats?.entradasVendidas ?? 0;
+  const eventsCount = myEvents.length;
+  const totalRevenue = organizerStats?.ingresosTotales !== undefined
+    ? (organizerStats.ingresosTotales >= 1000000
+        ? `$${(organizerStats.ingresosTotales / 1000000).toFixed(1)}M`
+        : `$${Number(organizerStats.ingresosTotales).toLocaleString('es-AR')}`)
+    : '$0';
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -131,14 +133,23 @@ export const OrganizerDashboardScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.eventsList}>
-          {myEvents.map((evt) => (
-            <EventCard
-              key={evt.id}
-              event={evt}
-              compact
-              onPress={() => navigation.navigate('ManageEvent', { eventId: evt.id })}
-            />
-          ))}
+          {myEvents.length > 0 ? (
+            myEvents.map((evt) => (
+              <EventCard
+                key={evt.id}
+                event={evt}
+                compact
+                onPress={() => navigation.navigate('ManageEvent', { eventId: evt.id })}
+              />
+            ))
+          ) : (
+            <View style={{ padding: SPACING.lg, alignItems: 'center', backgroundColor: COLORS.white, borderRadius: RADIUS.md }}>
+              <Ionicons name="calendar-outline" size={32} color={COLORS.textTertiary} style={{ marginBottom: 8 }} />
+              <Text style={{ ...FONTS.bodyMedium, color: COLORS.textSecondary, textAlign: 'center' }}>
+                Aún no tenés eventos publicados. Podés crear uno con el botón superior.
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Banner de Crecimiento */}

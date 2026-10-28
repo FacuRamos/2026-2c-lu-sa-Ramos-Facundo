@@ -119,13 +119,19 @@ export const CreateEventScreen = ({ navigation }) => {
         `El evento "${nuevo.nombre}" ya se encuentra publicado y disponible para la venta.`,
         [
           {
-            text: 'Ir a gestión del evento',
-            onPress: () =>
-              navigation.replace('ManageEvent', {
-                eventId: nuevo.id,
-              }),
+            text: 'Ver gestión del evento',
+            onPress: () => {
+              if (nuevo?.id) {
+                navigation.replace('ManageEvent', { eventId: nuevo.id });
+              } else {
+                navigation.goBack();
+              }
+            },
           },
-        ]
+        ],
+        {
+          cancelable: false,
+        }
       );
     } catch (err) {
       Alert.alert('Error al publicar', err.message || 'No se pudo crear el evento.');

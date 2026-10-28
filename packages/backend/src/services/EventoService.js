@@ -39,6 +39,10 @@ export class EventoService {
             ? data.tiposEntrada.map(t => new TipoEntrada(t))
             : [];
 
+        const multimedia = Array.isArray(data.multimedia) && data.multimedia.length > 0
+            ? data.multimedia
+            : (data.imagen ? [data.imagen] : []);
+
         const evento = new Evento({
             nombre: data.nombre,
             descripcion: data.descripcion,
@@ -46,8 +50,11 @@ export class EventoService {
             organizador,
             fecha: data.fecha instanceof Date ? data.fecha : new Date(data.fecha),
             tiposEntrada,
-            multimedia: data.multimedia || []
+            multimedia
         });
+        if (data.ubicacion) {
+            evento.ubicacion = data.ubicacion;
+        }
 
         await this.eventoRepo.create(evento);
         return mapEventoDetailDto(evento);
@@ -78,7 +85,8 @@ export class EventoService {
             busqueda: queryParams.busqueda,
             categoriaId: queryParams.categoriaId,
             precioMin: queryParams.precioMin,
-            precioMax: queryParams.precioMax
+            precioMax: queryParams.precioMax,
+            organizadorId: queryParams.organizadorId
         });
 
         const ordenados = ordenarEventos(filtrados, {

@@ -33,12 +33,15 @@ const crearEventoSchema = z.object({
     tiposEntrada: z.array(tipoEntradaInputSchema, {
         required_error: 'Debe incluir al menos un tipo de entrada'
     }).min(1, 'Debe incluir al menos un tipo de entrada'),
-    multimedia: z.array(z.string().trim().min(1, 'El recurso multimedia no puede estar vacío')).optional().default([])
+    multimedia: z.array(z.string().trim().min(1, 'El recurso multimedia no puede estar vacío')).optional().default([]),
+    imagen: z.string().trim().optional(),
+    ubicacion: z.string().trim().optional()
 });
 
 const buscarEventosQuerySchema = z.object({
     busqueda: z.string().trim().optional(),
     categoriaId: z.string().trim().optional(),
+    organizadorId: z.string().trim().optional(),
     precioMin: z.coerce.number().min(0, 'El precio mínimo no puede ser negativo').optional(),
     precioMax: z.coerce.number().min(0, 'El precio máximo no puede ser negativo').optional(),
     ordenarPor: z.enum(['precio', 'fecha', 'puntajeOrganizador']).optional(),

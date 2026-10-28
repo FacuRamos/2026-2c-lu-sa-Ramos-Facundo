@@ -2,6 +2,56 @@ import { webApiCaller } from './client/webApiCaller.js';
 import { NetworkError } from './client/apiError.js';
 import { localStore } from './localStore.js';
 
+export function adaptCompra(dto) {
+  if (!dto) return null;
+  const ev = dto.evento || {};
+  const tipo = dto.entrada || {};
+  const evFecha = ev.fecha ? new Date(ev.fecha) : null;
+  const fechaTexto = dto.eventoFechaTexto || (evFecha && !isNaN(evFecha.getTime())
+    ? evFecha.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · 20:30 hs'
+    : 'Próximamente');
+
+  const total = Number(dto.precioTotal ?? dto.total ?? 0);
+  const dias = dto.diasRestantes ?? dto.diasFaltantesParaEvento ?? 0;
+
+  return {
+    ...dto,
+    id: dto.id,
+    estado: dto.estado,
+    compradorId: dto.compradorId || dto.comprador?.id || dto.comprador,
+    compradorNombre: dto.compradorNombre || dto.comprador?.nombreCompleto || dto.comprador?.nombre || 'Comprador',
+    eventoId: dto.eventoId || ev.id || dto.evento,
+    eventoTitulo: dto.eventoTitulo || ev.nombre || 'Evento',
+    eventoImagen: dto.eventoImagen || ev.multimedia?.[0] || ev.imagen || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=900&q=85',
+    eventoFechaTexto: fechaTexto,
+    eventoLugar: dto.eventoLugar || ev.ubicacion || 'Buenos Aires',
+    tipoEntradaId: dto.tipoEntradaId || tipo.id || dto.tipoEntrada,
+    tipoEntradaNombre: dto.tipoEntradaNombre || tipo.nombre || 'General',
+    precioUnitario: Number(dto.precioUnitario ?? tipo.precioUnitario ?? (dto.cantidad ? total / dto.cantidad : 0)),
+    cantidad: Number(dto.cantidad ?? 1),
+    total,
+    precioTotal: total,
+    diasRestantes: dias,
+    diasFaltantesParaEvento: dias,
+    mensajes: (dto.mensajes || []).map((m) => {
+      const uId = m.remitenteId || m.usuarioId;
+      const uNombre = m.remitenteNombre || m.emisor || 'Usuario';
+      const mFecha = m.fecha || (m.enviado ? new Date(m.enviado).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : '');
+      return {
+        ...m,
+        id: m.id,
+        remitenteId: uId,
+        usuarioId: uId,
+        remitenteNombre: uNombre,
+        emisor: uNombre,
+        texto: m.texto || m.mensaje || '',
+        mensaje: m.mensaje || m.texto || '',
+        fecha: mFecha,
+      };
+    }),
+  };
+}
+
 export const purchasesService = {
   reset() {
     localStore.reset();
@@ -9,12 +59,14 @@ export const purchasesService = {
 
   async getComprasByComprador(compradorId) {
     try {
-      return await webApiCaller.get(`/compras/usuario/${compradorId}`);
+      const res = await webApiCaller.get(`/compras/usuario/${compradorId}`);
+      return Array.isArray(res) ? res.map(adaptCompra) : [];
     } catch (err) {
       if (err instanceof NetworkError) {
         return localStore.purchases
           .filter((p) => p.compradorId === compradorId)
-          .sort((a, b) => new Date(b.fechaCompra) - new Date(a.fechaCompra));
+          .sort((a, b) => new Date(b.fechaCompra) - new Date(a.fechaCompra))
+          .map(adaptCompra);
       }
       throw err;
     }
@@ -22,12 +74,13 @@ export const purchasesService = {
 
   async getCompraById(id) {
     try {
-      return await webApiCaller.get(`/compras/${id}`);
+      const res = await webApiCaller.get(`/compras/${id}`);
+      return adaptCompra(res);
     } catch (err) {
       if (err instanceof NetworkError) {
         const purchase = localStore.purchases.find((p) => p.id === id);
         if (!purchase) throw new Error(`Compra con id ${id} no encontrada`);
-        return JSON.parse(JSON.stringify(purchase));
+        return adaptCompra(JSON.parse(JSON.stringify(purchase)));
       }
       throw err;
     }
@@ -37,10 +90,11 @@ export const purchasesService = {
     try {
       const query = organizadorId ? { organizadorId } : {};
       const res = await webApiCaller.get(`/compras/evento/${eventoId}`, { query });
-      return Array.isArray(res) ? res : (res?.compras || []);
+      const rawList = Array.isArray(res) ? res : (res?.compras || []);
+      return rawList.map(adaptCompra);
     } catch (err) {
       if (err instanceof NetworkError) {
-        return localStore.purchases.filter((p) => p.eventoId === eventoId);
+        return localStore.purchases.filter((p) => p.eventoId === eventoId).map(adaptCompra);
       }
       throw err;
     }
@@ -53,12 +107,13 @@ export const purchasesService = {
     if (!cantidad || cantidad <= 0) throw new Error('La cantidad debe ser mayor a 0');
 
     try {
-      return await webApiCaller.post('/compras', {
+      const res = await webApiCaller.post('/compras', {
         compradorId,
         eventoId,
         tipoEntradaId,
         cantidad,
       });
+      return adaptCompra(res);
     } catch (err) {
       if (err instanceof NetworkError) {
         const event = localStore.events.find((e) => e.id === eventoId);

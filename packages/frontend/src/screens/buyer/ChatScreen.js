@@ -86,7 +86,7 @@ export const ChatScreen = ({ route, navigation }) => {
 
         {messages.length > 0 ? (
           messages.map((msg) => {
-            const isOwn = msg.remitenteId === currentUser?.id;
+            const isOwn = (msg.remitenteId || msg.usuarioId) === currentUser?.id;
             return (
               <ChatMessage
                 key={msg.id}

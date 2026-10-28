@@ -24,11 +24,20 @@ export function filtrarEventos(eventos = [], {
     busqueda = "",
     categoriaId = null,
     precioMin = null,
-    precioMax = null
+    precioMax = null,
+    organizadorId = null
 } = {}) {
     if (!Array.isArray(eventos)) return [];
 
     return eventos.filter(evento => {
+        // Filtro por organizador
+        if (organizadorId) {
+            const evOrgId = typeof evento.organizador === "object" ? evento.organizador?.id : evento.organizador;
+            if (evOrgId !== organizadorId) {
+                return false;
+            }
+        }
+
         // Filtro por término textual
         if (busqueda && typeof busqueda === "string" && busqueda.trim().length > 0) {
             if (!evento.coincideConBusqueda(busqueda)) {

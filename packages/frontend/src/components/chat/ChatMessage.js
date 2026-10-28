@@ -5,6 +5,9 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../constants/theme.js';
 export const ChatMessage = ({ message, isOwnMessage = false }) => {
   if (!message) return null;
 
+  const contenido = message.texto || message.mensaje || '';
+  const estampaHora = message.fecha || (message.enviado ? (typeof message.enviado === 'string' ? new Date(message.enviado).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : '') : '');
+
   return (
     <View
       style={[
@@ -19,16 +22,16 @@ export const ChatMessage = ({ message, isOwnMessage = false }) => {
         ]}
       >
         <Text style={[styles.text, isOwnMessage ? styles.ownText : styles.otherText]}>
-          {message.texto}
+          {contenido}
         </Text>
-        {message.fecha ? (
+        {estampaHora ? (
           <Text
             style={[
               styles.time,
               isOwnMessage ? styles.ownTime : styles.otherTime,
             ]}
           >
-            {message.fecha}
+            {estampaHora}
           </Text>
         ) : null}
       </View>

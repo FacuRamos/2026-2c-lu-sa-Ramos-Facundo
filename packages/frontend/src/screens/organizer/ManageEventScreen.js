@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useApp } from '../../context/AppContext.js';
 import { apiService } from '../../services/apiService.js';
 import { COLORS, SPACING, FONTS, RADIUS, SHADOWS } from '../../constants/theme.js';
 import { ScreenHeader } from '../../components/common/ScreenHeader.js';
@@ -22,6 +23,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner.js';
 export const ManageEventScreen = ({ route, navigation }) => {
   const insets = useSafeAreaInsets();
   const { eventId } = route.params || {};
+  const { currentUser } = useApp();
 
   const [event, setEvent] = useState(null);
   const [compras, setCompras] = useState([]);
@@ -34,7 +36,7 @@ export const ManageEventScreen = ({ route, navigation }) => {
         setLoading(true);
         const [evt, cmpList] = await Promise.all([
           apiService.getEventoById(eventId),
-          apiService.getComprasByEvento(eventId),
+          apiService.getComprasByEvento(eventId, currentUser?.id),
         ]);
         setEvent(evt);
         setCompras(cmpList);
@@ -49,7 +51,7 @@ export const ManageEventScreen = ({ route, navigation }) => {
     if (eventId) {
       loadData();
     }
-  }, [eventId, navigation]);
+  }, [eventId, currentUser?.id, navigation]);
 
   if (loading || !event) {
     return <LoadingSpinner fullScreen message="Cargando panel de gestión..." />;
@@ -97,11 +99,15 @@ export const ManageEventScreen = ({ route, navigation }) => {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Banner */}
-        <Image source={{ uri: event.imagen }} style={styles.bannerImage} resizeMode="cover" />
+        <Image
+          source={{ uri: event.imagen || event.multimedia?.[0] || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=900&q=85' }}
+          style={styles.bannerImage}
+          resizeMode="cover"
+        />
 
         <Text style={styles.eventTitle}>{event.nombre}</Text>
         <Text style={styles.eventSubtitle}>
-          {event.fechaTexto} · {event.ubicacion}
+          {event.fechaTexto || 'Próximamente'} · {event.ubicacion || 'Buenos Aires'}
         </Text>
 
         {/* Métricas del Evento */}
