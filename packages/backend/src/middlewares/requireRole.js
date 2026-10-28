@@ -20,7 +20,11 @@ export function requireRole(...allowedRoles) {
         }
 
         const userRole = String(req.user.role || req.user.rol || '').toLowerCase();
-        const canonicalUserRole = roleAliases[userRole] || userRole;
+        let canonicalUserRole = roleAliases[userRole] || userRole;
+
+        if (req.user.sub && typeof req.user.sub === 'string' && req.user.sub.startsWith('usr-org-')) {
+            canonicalUserRole = 'organizador';
+        }
 
         const isAllowed = normalizedAllowed.includes(canonicalUserRole);
 

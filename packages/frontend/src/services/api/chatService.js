@@ -27,8 +27,10 @@ export const chatService = {
 
     try {
       return await webApiCaller.post(`/compras/${compraId}/mensajes`, {
+        usuarioId: remitenteId,
         remitenteId,
         remitenteNombre,
+        mensaje: texto.trim(),
         texto: texto.trim(),
         esComprador,
       });

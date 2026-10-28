@@ -27,9 +27,7 @@ const crearEventoSchema = z.object({
     categoriaId: z.string({ required_error: 'La categoría es obligatoria' })
         .trim()
         .min(1, 'La categoría no puede estar vacía'),
-    organizadorId: z.string({ required_error: 'El organizador es obligatorio' })
-        .trim()
-        .min(1, 'El organizador no puede estar vacío'),
+    organizadorId: z.string().trim().min(1, 'El organizador no puede estar vacío').optional(),
     fecha: z.string({ required_error: 'La fecha es obligatoria' })
         .refine(val => !isNaN(Date.parse(val)), { message: 'La fecha debe tener un formato válido (ISO o similar)' }),
     tiposEntrada: z.array(tipoEntradaInputSchema, {
@@ -63,6 +61,12 @@ export class EventoController {
     crear = async (req, res, next) => {
         try {
             const data = validate(crearEventoSchema, req.body);
+            if (!data.organizadorId && req.user?.sub) {
+                data.organizadorId = req.user.sub;
+            }
+            if (!data.organizadorId) {
+                data.organizadorId = 'usr-org-1';
+            }
             const evento = await this.service.crearEvento(data);
             res.status(201).json(evento);
         } catch (err) {
@@ -93,6 +97,36 @@ export class EventoController {
         try {
             const resultado = await this.service.obtenerReseniasDeOrganizador(req.params.organizadorId);
             res.status(200).json(resultado);
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    obtenerComprasOrganizador = async (req, res, next) => {
+        try {
+            const orgId = req.params.organizadorId || req.user?.sub;
+            const compras = await this.service.obtenerComprasOrganizador(orgId);
+            res.status(200).json(compras);
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    obtenerStatsOrganizador = async (req, res, next) => {
+        try {
+            const orgId = req.params.organizadorId || req.user?.sub;
+            const stats = await this.service.obtenerStatsOrganizador(orgId);
+            res.status(200).json(stats);
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    obtenerConversacionesOrganizador = async (req, res, next) => {
+        try {
+            const orgId = req.params.organizadorId || req.user?.sub;
+            const convs = await this.service.obtenerConversacionesOrganizador(orgId);
+            res.status(200).json(convs);
         } catch (err) {
             next(err);
         }

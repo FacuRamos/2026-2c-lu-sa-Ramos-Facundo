@@ -33,6 +33,19 @@ export const purchasesService = {
     }
   },
 
+  async getComprasByEvento(eventoId, organizadorId = null) {
+    try {
+      const query = organizadorId ? { organizadorId } : {};
+      const res = await webApiCaller.get(`/compras/evento/${eventoId}`, { query });
+      return Array.isArray(res) ? res : (res?.compras || []);
+    } catch (err) {
+      if (err instanceof NetworkError) {
+        return localStore.purchases.filter((p) => p.eventoId === eventoId);
+      }
+      throw err;
+    }
+  },
+
   async createCompra({ compradorId, eventoId, tipoEntradaId, cantidad }) {
     if (!compradorId) throw new Error('El comprador es obligatorio');
     if (!eventoId) throw new Error('El evento es obligatorio');

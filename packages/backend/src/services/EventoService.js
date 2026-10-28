@@ -4,6 +4,7 @@ import { eventoRepository as defaultEventoRepo } from '../repositories/EventoRep
 import { categoriaRepository as defaultCategoriaRepo } from '../repositories/CategoriaRepository.js';
 import { usuarioRepository as defaultUsuarioRepo } from '../repositories/UsuarioRepository.js';
 import { reseniaRepository as defaultReseniaRepo } from '../repositories/ReseniaRepository.js';
+import { compraRepository as defaultCompraRepo } from '../repositories/CompraRepository.js';
 import { NotFoundError } from './errors/ServiceError.js';
 import { filtrarEventos, ordenarEventos, calcularPuntajeOrganizador } from '../domain/utils/eventoUtils.js';
 import { mapEventoDetailDto, mapEventoSummaryDto, mapEventoConDetalleYReseniasDto } from './mappers.js';
@@ -13,12 +14,14 @@ export class EventoService {
         eventoRepo = defaultEventoRepo,
         categoriaRepo = defaultCategoriaRepo,
         usuarioRepo = defaultUsuarioRepo,
-        reseniaRepo = defaultReseniaRepo
+        reseniaRepo = defaultReseniaRepo,
+        compraRepo = defaultCompraRepo
     } = {}) {
         this.eventoRepo = eventoRepo;
         this.categoriaRepo = categoriaRepo;
         this.usuarioRepo = usuarioRepo;
         this.reseniaRepo = reseniaRepo;
+        this.compraRepo = compraRepo;
     }
 
     async crearEvento(data) {
@@ -119,6 +122,93 @@ export class EventoService {
                 fecha: r.fecha instanceof Date ? r.fecha.toISOString() : r.fecha
             }))
         };
+    }
+
+    async obtenerComprasOrganizador(organizadorId) {
+        const eventos = await this.eventoRepo.getAll();
+        const misEventos = eventos.filter(e => {
+            const orgId = typeof e.organizador === 'object' && e.organizador ? e.organizador.id : e.organizador;
+            return orgId === organizadorId;
+        });
+        const misEventosIds = new Set(misEventos.map(e => e.id));
+
+        const todasCompras = await this.compraRepo.getAll();
+        const comprasOrg = todasCompras.filter(c => {
+            const evId = typeof c.evento === 'object' && c.evento ? c.evento.id : c.evento;
+            return misEventosIds.has(evId);
+        });
+
+        return comprasOrg.map(c => {
+            const comp = c.comprador;
+            const ev = c.evento;
+            const tipo = c.tipoEntrada;
+            return {
+                id: c.id,
+                compradorId: typeof comp === 'object' && comp ? comp.id : comp,
+                compradorNombre: typeof comp === 'object' && comp ? (comp.nombreCompleto || `${comp.nombre || ''} ${comp.apellido || ''}`.trim()) : 'Comprador',
+                eventoId: typeof ev === 'object' && ev ? ev.id : ev,
+                eventoTitulo: typeof ev === 'object' && ev ? ev.nombre : 'Evento',
+                tipoEntradaId: typeof tipo === 'object' && tipo ? tipo.id : tipo,
+                tipoEntradaNombre: typeof tipo === 'object' && tipo ? tipo.nombre : 'Entrada',
+                cantidad: c.cantidad,
+                total: c.total,
+                precioTotal: c.total,
+                estado: c.estado,
+                fechaCompra: c.fechaCompra instanceof Date ? c.fechaCompra.toISOString() : c.fechaCompra,
+                mensajes: (c.mensajes || []).map(m => ({
+                    id: m.id,
+                    usuarioId: typeof m.usuario === 'object' && m.usuario ? m.usuario.id : m.usuario,
+                    emisor: typeof m.usuario === 'object' && m.usuario ? (m.usuario.nombreCompleto || m.usuario.nombre) : 'Usuario',
+                    mensaje: m.mensaje,
+                    enviado: m.enviado instanceof Date ? m.enviado.toISOString() : m.enviado
+                }))
+            };
+        });
+    }
+
+    async obtenerStatsOrganizador(organizadorId) {
+        const compras = await this.obtenerComprasOrganizador(organizadorId);
+        const eventos = await this.eventoRepo.getAll();
+        const misEventos = eventos.filter(e => {
+            const orgId = typeof e.organizador === 'object' && e.organizador ? e.organizador.id : e.organizador;
+            return orgId === organizadorId;
+        });
+
+        let entradasVendidas = 0;
+        let ingresosTotales = 0;
+        for (const c of compras) {
+            if (c.estado !== 'CANCELADA') {
+                entradasVendidas += c.cantidad || 0;
+                ingresosTotales += c.total || c.precioTotal || 0;
+            }
+        }
+
+        let entradasDisponibles = 0;
+        for (const e of misEventos) {
+            for (const t of (e.tiposEntrada || [])) {
+                entradasDisponibles += (t.cupoDisponible !== undefined ? t.cupoDisponible : t.cupo) || 0;
+            }
+        }
+
+        return {
+            eventosCount: misEventos.length,
+            entradasVendidas,
+            entradasDisponibles,
+            ingresosTotales,
+            eventos: misEventos.map(mapEventoSummaryDto)
+        };
+    }
+
+    async obtenerConversacionesOrganizador(organizadorId) {
+        const compras = await this.obtenerComprasOrganizador(organizadorId);
+        return compras.map(c => ({
+            compraId: c.id,
+            compradorNombre: c.compradorNombre,
+            eventoTitulo: c.eventoTitulo,
+            ultimoMensaje: c.mensajes && c.mensajes.length > 0 ? c.mensajes[c.mensajes.length - 1] : null,
+            totalMensajes: (c.mensajes && c.mensajes.length) || 0,
+            tipoEntradaNombre: c.tipoEntradaNombre
+        }));
     }
 }
 

@@ -75,6 +75,10 @@ class ApiService {
     return purchasesService.cancelarCompra(compraId, usuarioId);
   }
 
+  async getComprasByEvento(eventoId, organizadorId) {
+    return purchasesService.getComprasByEvento(eventoId, organizadorId);
+  }
+
   // --- CHAT ---
   async getMensajesCompra(compraId) {
     return chatService.getMensajesCompra(compraId);

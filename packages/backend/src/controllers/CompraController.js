@@ -27,12 +27,14 @@ const cancelarCompraSchema = z.object({
 });
 
 const enviarMensajeSchema = z.object({
-    usuarioId: z.string({ required_error: 'El usuarioId es obligatorio' })
-        .trim()
-        .min(1, 'El usuarioId no puede estar vacío'),
-    mensaje: z.string({ required_error: 'El mensaje no puede estar vacío' })
-        .trim()
-        .min(1, 'El mensaje no puede estar vacío')
+    usuarioId: z.string().trim().min(1, 'El usuarioId no puede estar vacío').optional(),
+    remitenteId: z.string().trim().min(1, 'El remitenteId no puede estar vacío').optional(),
+    mensaje: z.string().trim().min(1, 'El mensaje no puede estar vacío').optional(),
+    texto: z.string().trim().min(1, 'El texto no puede estar vacío').optional()
+}).refine(data => data.usuarioId || data.remitenteId, {
+    message: 'El usuarioId o remitenteId es obligatorio'
+}).refine(data => data.mensaje || data.texto, {
+    message: 'El mensaje no puede estar vacío'
 });
 
 const marcarUtilizadaSchema = z.object({
@@ -114,7 +116,12 @@ export class CompraController {
     enviarMensaje = async (req, res, next) => {
         try {
             const data = validate(enviarMensajeSchema, req.body);
-            const mensaje = await this.service.enviarMensaje(req.params.id, data);
+            const usuarioId = req.user?.sub || data.usuarioId || data.remitenteId;
+            const mensajeTexto = (data.mensaje || data.texto || '').trim();
+            const mensaje = await this.service.enviarMensaje(req.params.id, {
+                usuarioId,
+                mensaje: mensajeTexto
+            });
             res.status(201).json(mensaje);
         } catch (err) {
             next(err);

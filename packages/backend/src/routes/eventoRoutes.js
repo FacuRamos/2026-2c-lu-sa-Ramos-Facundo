@@ -8,6 +8,9 @@ const router = Router();
 router.post('/', authMiddleware, requireRole('Organizador'), eventoController.crear);
 router.get('/', eventoController.buscar);
 router.get('/organizador/:organizadorId/resenias', eventoController.obtenerReseniasOrganizador);
+router.get('/organizador/:organizadorId/compras', authMiddleware, requireRole('Organizador'), eventoController.obtenerComprasOrganizador);
+router.get('/organizador/:organizadorId/stats', authMiddleware, requireRole('Organizador'), eventoController.obtenerStatsOrganizador);
+router.get('/organizador/:organizadorId/conversaciones', authMiddleware, requireRole('Organizador'), eventoController.obtenerConversacionesOrganizador);
 router.get('/:id', eventoController.obtenerPorId);
 
 export default router;

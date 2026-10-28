@@ -72,15 +72,27 @@ export const AppProvider = ({ children }) => {
   }, [loadInitialData]);
 
   // Cambiar rol de usuario
-  const switchRole = useCallback((newRole) => {
-    if (newRole === USER_ROLES.ORGANIZER) {
-      setUserRole(USER_ROLES.ORGANIZER);
-      setCurrentUser(DEFAULT_USERS.organizer);
-      secureStoreService.setObject(SECURE_KEYS.USER_DATA, DEFAULT_USERS.organizer);
-    } else {
-      setUserRole(USER_ROLES.BUYER);
-      setCurrentUser(DEFAULT_USERS.buyer);
-      secureStoreService.setObject(SECURE_KEYS.USER_DATA, DEFAULT_USERS.buyer);
+  const switchRole = useCallback(async (newRole) => {
+    const isOrg = newRole === USER_ROLES.ORGANIZER;
+    const targetRole = isOrg ? USER_ROLES.ORGANIZER : USER_ROLES.BUYER;
+    const targetUser = isOrg ? DEFAULT_USERS.organizer : DEFAULT_USERS.buyer;
+
+    setUserRole(targetRole);
+    setCurrentUser(targetUser);
+    secureStoreService.setObject(SECURE_KEYS.USER_DATA, targetUser);
+
+    try {
+      const res = await apiService.loginDemo(isOrg ? 'Organizador' : 'Comprador');
+      if (res?.token) {
+        setToken(res.token);
+        await secureStoreService.setItem(SECURE_KEYS.AUTH_TOKEN, res.token);
+      }
+      if (res?.usuario) {
+        setCurrentUser(res.usuario);
+        await secureStoreService.setObject(SECURE_KEYS.USER_DATA, res.usuario);
+      }
+    } catch {
+      // Si falla login demo por offline, mantiene targetUser en memoria
     }
   }, []);
 

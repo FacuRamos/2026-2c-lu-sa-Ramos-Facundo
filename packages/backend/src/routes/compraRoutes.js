@@ -7,8 +7,17 @@ const router = Router();
 
 router.post('/', authMiddleware, requireRole('Comprador'), compraController.realizarCompra);
 router.get('/comprador/:compradorId', compraController.obtenerPorComprador);
+router.get('/usuario/:compradorId', compraController.obtenerPorComprador);
 router.get('/evento/:eventoId', compraController.obtenerPorEvento);
 router.get('/:id', compraController.obtenerPorId);
+router.get('/:id/mensajes', async (req, res, next) => {
+    try {
+        const compra = await compraController.service.obtenerPorId(req.params.id);
+        res.status(200).json(compra.mensajes || []);
+    } catch (err) {
+        next(err);
+    }
+});
 
 router.post('/:id/cancelar', authMiddleware, requireRole('Comprador'), compraController.cancelar);
 router.post('/:id/utilizar', authMiddleware, requireRole('Organizador'), compraController.marcarUtilizada);
