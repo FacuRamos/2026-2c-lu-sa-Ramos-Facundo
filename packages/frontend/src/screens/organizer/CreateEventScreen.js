@@ -24,6 +24,44 @@ const PRESET_IMAGES = [
   { label: 'Festival', url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=900&q=85' },
 ];
 
+function parseFechaYHora(fechaStr, horaStr) {
+  if (!fechaStr || !fechaStr.trim()) return null;
+  const horaLimpia = (horaStr || '20:30').trim();
+
+  let anio, mes, dia;
+  if (fechaStr.includes('/')) {
+    const partes = fechaStr.trim().split('/');
+    if (partes.length !== 3) return null;
+    dia = parseInt(partes[0], 10);
+    mes = parseInt(partes[1], 10) - 1;
+    anio = parseInt(partes[2], 10);
+  } else if (fechaStr.includes('-')) {
+    const partes = fechaStr.trim().split('-');
+    if (partes.length !== 3) return null;
+    anio = parseInt(partes[0], 10);
+    mes = parseInt(partes[1], 10) - 1;
+    dia = parseInt(partes[2], 10);
+  } else {
+    return null;
+  }
+
+  let horas = 20;
+  let minutos = 30;
+  if (horaLimpia.includes(':')) {
+    const partesHora = horaLimpia.split(':');
+    horas = parseInt(partesHora[0], 10);
+    minutos = parseInt(partesHora[1], 10);
+  }
+
+  if (isNaN(dia) || isNaN(mes) || isNaN(anio) || isNaN(horas) || isNaN(minutos)) {
+    return null;
+  }
+
+  const targetDate = new Date(anio, mes, dia, horas, minutos, 0, 0);
+  if (isNaN(targetDate.getTime())) return null;
+  return targetDate;
+}
+
 export const CreateEventScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { categories, createEvent } = useApp();
@@ -32,6 +70,7 @@ export const CreateEventScreen = ({ navigation }) => {
   const [descripcion, setDescripcion] = useState('Una noche única con artistas emergentes y consagrados de la escena independiente.');
   const [categoriaId, setCategoriaId] = useState('cat-musica');
   const [fecha, setFecha] = useState('24/08/2026');
+  const [hora, setHora] = useState('21:00');
   const [ubicacion, setUbicacion] = useState('Luna Park, CABA');
   const [imagen, setImagen] = useState(PRESET_IMAGES[0].url);
 
@@ -80,6 +119,21 @@ export const CreateEventScreen = ({ navigation }) => {
       return;
     }
 
+    // Validar fecha y hora
+    const targetDate = parseFechaYHora(fecha, hora);
+    if (!targetDate) {
+      Alert.alert('Fecha u hora inválida', 'Por favor ingresá una fecha válida en formato DD/MM/AAAA (ej: 24/08/2026) y hora en formato HH:mm (ej: 21:00).');
+      return;
+    }
+
+    if (targetDate.getTime() <= Date.now()) {
+      Alert.alert(
+        'Fecha no permitida',
+        'No podés crear un evento en una fecha u hora que ya pasó. Por favor ingresá una fecha futura.'
+      );
+      return;
+    }
+
     // Validar tipos de entrada
     for (const t of tiposEntrada) {
       if (!t.nombre.trim()) {
@@ -102,8 +156,8 @@ export const CreateEventScreen = ({ navigation }) => {
         nombre: nombre.trim(),
         descripcion: descripcion.trim(),
         categoriaId,
-        fecha: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        fechaTexto: `${fecha} · 20:30 hs`,
+        fecha: targetDate.toISOString(),
+        fechaTexto: `${fecha.trim()} · ${hora.trim()} hs`,
         ubicacion: ubicacion.trim(),
         direccion: `${ubicacion.trim()}, CABA`,
         imagen,
@@ -219,13 +273,20 @@ export const CreateEventScreen = ({ navigation }) => {
           </View>
           <View style={styles.halfCol}>
             <FormInput
-              label="Ubicación"
-              placeholder="Ej: Luna Park"
-              value={ubicacion}
-              onChangeText={setUbicacion}
+              label="Hora"
+              placeholder="HH:mm (ej: 21:00)"
+              value={hora}
+              onChangeText={setHora}
             />
           </View>
         </View>
+
+        <FormInput
+          label="Ubicación"
+          placeholder="Ej: Luna Park, CABA"
+          value={ubicacion}
+          onChangeText={setUbicacion}
+        />
 
         {/* Preset de Imágenes */}
         <Text style={styles.fieldLabel}>Imagen destacada</Text>

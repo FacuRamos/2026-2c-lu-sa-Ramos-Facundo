@@ -29,7 +29,8 @@ const crearEventoSchema = z.object({
         .min(1, 'La categoría no puede estar vacía'),
     organizadorId: z.string().trim().min(1, 'El organizador no puede estar vacío').optional(),
     fecha: z.string({ required_error: 'La fecha es obligatoria' })
-        .refine(val => !isNaN(Date.parse(val)), { message: 'La fecha debe tener un formato válido (ISO o similar)' }),
+        .refine(val => !isNaN(Date.parse(val)), { message: 'La fecha debe tener un formato válido (ISO o similar)' })
+        .refine(val => new Date(val).getTime() > Date.now(), { message: 'No se puede crear un evento con una fecha pasada' }),
     tiposEntrada: z.array(tipoEntradaInputSchema, {
         required_error: 'Debe incluir al menos un tipo de entrada'
     }).min(1, 'Debe incluir al menos un tipo de entrada'),

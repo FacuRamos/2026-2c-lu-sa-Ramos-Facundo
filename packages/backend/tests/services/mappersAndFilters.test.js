@@ -97,4 +97,40 @@ describe('DTO Mappers & Filtering UI Compatibility Tests', () => {
         assert.strictEqual(soloOrg2.length, 1);
         assert.strictEqual(soloOrg2[0].id, 'ev-otro');
     });
+
+    it('rechaza la creación de eventos con fecha pasada retornando 400', async () => {
+        const { createApp } = await import('../../src/app.js');
+        const { seedDemoData } = await import('../../data/seeders/demoSeeder.js');
+        const jwt = (await import('jsonwebtoken')).default;
+        const { JWT_SECRET } = await import('../../src/services/AuthService.js');
+        await seedDemoData();
+        const app = createApp();
+        const server = app.listen(0);
+        const port = server.address().port;
+        const orgToken = jwt.sign({ sub: 'usr-org-1', role: 'Organizador', rol: 'Organizador' }, JWT_SECRET, { expiresIn: '15m' });
+
+        try {
+            const res = await fetch(`http://localhost:${port}/api/eventos`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${orgToken}`
+                },
+                body: JSON.stringify({
+                    nombre: 'Evento Pasado Rechazado',
+                    descripcion: 'No debería crearse',
+                    categoriaId: 'cat-musica',
+                    organizadorId: 'usr-org-1',
+                    fecha: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+                    tiposEntrada: [{ nombre: 'General', precio: 5000, cupo: 100 }]
+                })
+            });
+
+            assert.strictEqual(res.status, 400);
+            const body = await res.json();
+            assert.ok(body.error?.includes('fecha pasada') || JSON.stringify(body).includes('fecha pasada'));
+        } finally {
+            server.close();
+        }
+    });
 });
