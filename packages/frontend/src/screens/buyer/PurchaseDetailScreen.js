@@ -512,8 +512,6 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontStyle: 'italic',
   },
-    color: COLORS.textPrimary,
-  },
   statusNotice: {
     paddingVertical: SPACING.md,
     alignItems: 'center',
