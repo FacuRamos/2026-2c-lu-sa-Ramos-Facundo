@@ -25,6 +25,11 @@ export const OrganizerInboxScreen = ({ navigation }) => {
 
   useEffect(() => {
     async function loadConversations() {
+      if (!currentUser?.id) {
+        setConversations([]);
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const convs = await apiService.getConversacionesOrganizador(currentUser.id);
@@ -37,7 +42,7 @@ export const OrganizerInboxScreen = ({ navigation }) => {
     }
 
     loadConversations();
-  }, [currentUser.id, purchases]);
+  }, [currentUser?.id, purchases]);
 
   if (loading) {
     return <LoadingSpinner fullScreen message="Cargando mensajes..." />;

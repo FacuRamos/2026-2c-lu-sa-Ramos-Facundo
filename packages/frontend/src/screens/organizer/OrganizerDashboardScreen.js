@@ -89,7 +89,7 @@ export const OrganizerDashboardScreen = ({ navigation }) => {
         <View style={styles.headerSection}>
           <Text style={styles.tagline}>Espacio organizador</Text>
           <Text style={styles.orgName}>
-            Hola, {currentUser.nombre} {currentUser.apellido}
+            Hola, {currentUser?.nombreProductora || `${currentUser?.nombre || 'Organizador'} ${currentUser?.apellido || ''}`.trim()}
           </Text>
         </View>
 

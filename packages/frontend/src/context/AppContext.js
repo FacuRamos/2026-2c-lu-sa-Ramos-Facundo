@@ -199,6 +199,7 @@ export const AppProvider = ({ children }) => {
 
   const toggleFavorite = useCallback(
     async (eventId) => {
+      if (!currentUser?.id) return false;
       try {
         const res = await apiService.toggleFavorito(currentUser.id, eventId);
         setFavorites(res.favoritos);
@@ -208,12 +209,15 @@ export const AppProvider = ({ children }) => {
         return false;
       }
     },
-    [currentUser.id]
+    [currentUser?.id]
   );
 
   // Compras
   const createPurchase = useCallback(
     async ({ eventoId, tipoEntradaId, cantidad }) => {
+      if (!currentUser?.id) {
+        throw new Error('Debés iniciar sesión para realizar una compra');
+      }
       setIsLoading(true);
       try {
         const nuevaCompra = await apiService.createCompra({
@@ -255,11 +259,14 @@ export const AppProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [currentUser.id]
+    [currentUser]
   );
 
   const cancelPurchase = useCallback(
     async (compraId) => {
+      if (!currentUser?.id) {
+        throw new Error('Debés iniciar sesión para cancelar una compra');
+      }
       setIsLoading(true);
       try {
         const compraActualizada = await apiService.cancelarCompra(compraId, currentUser.id);
@@ -295,11 +302,14 @@ export const AppProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [currentUser.id]
+    [currentUser]
   );
 
   const markPurchaseUtilized = useCallback(
     async (compraId) => {
+      if (!currentUser?.id) {
+        throw new Error('Debés iniciar sesión como organizador');
+      }
       setIsLoading(true);
       try {
         const compraActualizada = await apiService.marcarEntradaUtilizada(compraId, currentUser.id);
@@ -311,16 +321,19 @@ export const AppProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [currentUser.id]
+    [currentUser?.id]
   );
 
   // Chat
   const sendMessage = useCallback(
     async (compraId, texto) => {
+      if (!currentUser?.id) {
+        throw new Error('Debés iniciar sesión para enviar mensajes');
+      }
       const remitenteNombre =
         userRole === USER_ROLES.BUYER
           ? `${currentUser.nombre} ${currentUser.apellido}`
-          : currentUser.nombre;
+          : (currentUser.nombreProductora || currentUser.nombre);
 
       const nuevoMsg = await apiService.enviarMensajeCompra(compraId, {
         remitenteId: currentUser.id,
@@ -386,12 +399,15 @@ export const AppProvider = ({ children }) => {
   // Crear Evento (Organizador)
   const createEvent = useCallback(
     async (eventoData) => {
+      if (!currentUser?.id) {
+        throw new Error('Debés iniciar sesión como organizador');
+      }
       setIsLoading(true);
       try {
         const nuevoEvento = await apiService.createEvento({
           ...eventoData,
           organizadorId: currentUser.id,
-          organizadorNombre: `${currentUser.nombre} ${currentUser.apellido}`.trim(),
+          organizadorNombre: (currentUser.nombreProductora || `${currentUser.nombre} ${currentUser.apellido}`).trim(),
         });
 
         setEvents(prev => [nuevoEvento, ...prev]);

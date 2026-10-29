@@ -36,7 +36,7 @@ export const OrganizerSalesScreen = ({ route, navigation }) => {
         if (eventId) {
           list = await apiService.getComprasByEvento(eventId, currentUser?.id);
         } else {
-          list = await apiService.getComprasByOrganizador(currentUser.id);
+          list = await apiService.getComprasByOrganizador(currentUser?.id);
         }
         setSales(list);
       } catch (err) {
@@ -47,7 +47,7 @@ export const OrganizerSalesScreen = ({ route, navigation }) => {
     }
 
     loadSales();
-  }, [eventId, currentUser.id]);
+  }, [eventId, currentUser?.id]);
 
   if (loading) {
     return <LoadingSpinner fullScreen message="Cargando compras..." />;
@@ -76,6 +76,7 @@ export const OrganizerSalesScreen = ({ route, navigation }) => {
         {
           text: 'Marcar como Utilizada',
           onPress: async () => {
+            if (!currentUser?.id) return;
             try {
               await apiService.marcarEntradaUtilizada(sale.id, currentUser.id);
               setSales((prev) =>
