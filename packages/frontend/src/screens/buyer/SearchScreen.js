@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS, SPACING, FONTS } from '../../constants/theme.js';
+import { COLORS, SPACING, FONTS, RADIUS } from '../../constants/theme.js';
 import { ScreenHeader } from '../../components/common/ScreenHeader.js';
 import { SearchBar } from '../../components/common/SearchBar.js';
 import { CategorySelector } from '../../components/common/CategorySelector.js';
