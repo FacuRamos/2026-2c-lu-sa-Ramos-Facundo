@@ -35,17 +35,11 @@ export const HomeScreen = ({ navigation }) => {
     otherEvents,
     isFavorite,
     toggleFavorite,
-    switchRole,
   } = useEvents();
 
   const handleNavigateToSearch = useCallback(() => {
     navigation.navigate('Search');
   }, [navigation]);
-
-  const handleSwitchToOrganizer = useCallback(() => {
-    switchRole(USER_ROLES.ORGANIZER);
-    navigation.navigate('OrganizerDashboard');
-  }, [switchRole, navigation]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -61,14 +55,6 @@ export const HomeScreen = ({ navigation }) => {
               <Ionicons name="search-outline" size={20} color={COLORS.textPrimary} />
             </TouchableOpacity>
             <NotificationBell />
-            <TouchableOpacity
-              onPress={handleSwitchToOrganizer}
-              style={styles.roleBadge}
-              accessibilityLabel="Cambiar a Modo Organizador"
-            >
-              <Ionicons name="swap-horizontal" size={14} color={COLORS.primary} />
-              <Text style={styles.roleText}>Org</Text>
-            </TouchableOpacity>
           </View>
         }
       />

@@ -11,10 +11,15 @@ export const NotificationProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const cargarNotificaciones = useCallback(async () => {
+    if (!currentUser?.id) {
+      setNotificaciones([]);
+      setUnreadCount(0);
+      return;
+    }
     setIsLoading(true);
     try {
       const items = await apiService.getNotificaciones({
-        usuarioId: currentUser?.id,
+        usuarioId: currentUser.id,
         rolDestino: userRole,
       });
       setNotificaciones(items);

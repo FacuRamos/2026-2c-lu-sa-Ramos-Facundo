@@ -29,45 +29,55 @@ import { OrganizerInboxScreen } from '../screens/organizer/OrganizerInboxScreen.
 const Stack = createNativeStackNavigator();
 
 export const RootNavigator = () => {
-  const { userRole } = useApp();
-  const MainComponent = userRole === USER_ROLES.ORGANIZER ? OrganizerDashboardScreen : BuyerTabNavigator;
+  const { currentUser, userRole, isReady } = useApp();
+
+  if (isReady === false) {
+    return null;
+  }
+
+  const isAuthenticated = Boolean(currentUser && currentUser.id);
+  const isOrganizer = userRole === USER_ROLES.ORGANIZER || currentUser?.rol === USER_ROLES.ORGANIZER;
+  const MainComponent = isOrganizer ? OrganizerDashboardScreen : BuyerTabNavigator;
 
   return (
     <NavigationContainer>
       <Stack.Navigator
-        key={userRole}
+        key={isAuthenticated ? (isOrganizer ? 'org-stack' : 'buyer-stack') : 'auth-stack'}
         screenOptions={{
           headerShown: false,
           animation: 'slide_from_right',
         }}
-        initialRouteName={
-          userRole === USER_ROLES.ORGANIZER ? 'OrganizerDashboard' : 'BuyerTabs'
-        }
+        initialRouteName={isAuthenticated ? 'MainTabs' : 'Login'}
       >
-        {/* Main Entry Points */}
-        <Stack.Screen name="MainTabs" component={MainComponent} />
-        <Stack.Screen name="BuyerTabs" component={BuyerTabNavigator} />
-        <Stack.Screen name="OrganizerDashboard" component={OrganizerDashboardScreen} />
-
-        {/* Auth & Notifications */}
-        <Stack.Screen name="Notification" component={NotificationScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="RegisterBuyer" component={RegisterBuyerScreen} />
-        <Stack.Screen name="RegisterOrganizer" component={RegisterOrganizerScreen} />
-
-        {/* Buyer Flows */}
-        <Stack.Screen name="Search" component={SearchScreen} />
-        <Stack.Screen name="EventDetail" component={EventDetailScreen} />
-        <Stack.Screen name="TicketSelection" component={TicketSelectionScreen} />
-        <Stack.Screen name="PurchaseDetail" component={PurchaseDetailScreen} />
-        <Stack.Screen name="Chat" component={ChatScreen} />
-        <Stack.Screen name="Review" component={ReviewScreen} />
-
-        {/* Organizer Flows */}
-        <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
-        <Stack.Screen name="ManageEvent" component={ManageEventScreen} />
-        <Stack.Screen name="OrganizerSales" component={OrganizerSalesScreen} />
-        <Stack.Screen name="OrganizerInbox" component={OrganizerInboxScreen} />
+        {!isAuthenticated ? (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="RegisterBuyer" component={RegisterBuyerScreen} />
+            <Stack.Screen name="RegisterOrganizer" component={RegisterOrganizerScreen} />
+          </>
+        ) : isOrganizer ? (
+          <>
+            <Stack.Screen name="MainTabs" component={OrganizerDashboardScreen} />
+            <Stack.Screen name="OrganizerDashboard" component={OrganizerDashboardScreen} />
+            <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
+            <Stack.Screen name="ManageEvent" component={ManageEventScreen} />
+            <Stack.Screen name="OrganizerSales" component={OrganizerSalesScreen} />
+            <Stack.Screen name="OrganizerInbox" component={OrganizerInboxScreen} />
+            <Stack.Screen name="Notification" component={NotificationScreen} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="MainTabs" component={BuyerTabNavigator} />
+            <Stack.Screen name="BuyerTabs" component={BuyerTabNavigator} />
+            <Stack.Screen name="Search" component={SearchScreen} />
+            <Stack.Screen name="EventDetail" component={EventDetailScreen} />
+            <Stack.Screen name="TicketSelection" component={TicketSelectionScreen} />
+            <Stack.Screen name="PurchaseDetail" component={PurchaseDetailScreen} />
+            <Stack.Screen name="Chat" component={ChatScreen} />
+            <Stack.Screen name="Review" component={ReviewScreen} />
+            <Stack.Screen name="Notification" component={NotificationScreen} />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -183,7 +183,6 @@ export const EventDetailScreen = ({ route, navigation }) => {
                   <RatingStars rating={rev.puntuacion} size={14} />
                 </View>
                 <Text style={styles.reviewComment}>“{rev.detalle}”</Text>
-                <Text style={styles.reviewDate}>{rev.fecha}</Text>
               </View>
             ))
           ) : (

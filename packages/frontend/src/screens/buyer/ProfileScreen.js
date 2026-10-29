@@ -12,19 +12,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../../context/AppContext.js';
 import { COLORS, SPACING, FONTS, RADIUS, SHADOWS } from '../../constants/theme.js';
 import { ScreenHeader } from '../../components/common/ScreenHeader.js';
-import { USER_ROLES } from '../../constants/roles.js';
 
 export const ProfileScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const { currentUser, userRole, switchRole, purchases, favorites } = useApp();
+  const { currentUser, logout, purchases, favorites } = useApp();
 
-  const handleToggleRole = () => {
-    const nextRole =
-      userRole === USER_ROLES.BUYER ? USER_ROLES.ORGANIZER : USER_ROLES.BUYER;
-    switchRole(nextRole);
-    if (nextRole === USER_ROLES.ORGANIZER) {
-      navigation.navigate('OrganizerDashboard');
-    }
+  const handleLogout = () => {
+    Alert.alert(
+      'Cerrar sesión',
+      '¿Estás seguro de que deseás cerrar tu sesión?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Cerrar sesión', style: 'destructive', onPress: logout },
+      ]
+    );
   };
 
   return (
@@ -38,13 +39,13 @@ export const ProfileScreen = ({ navigation }) => {
         {/* Tarjeta de Usuario */}
         <View style={styles.userCard}>
           <View style={styles.avatarCircle}>
-            <Text style={styles.avatarText}>{currentUser.avatar || 'US'}</Text>
+            <Text style={styles.avatarText}>{currentUser?.avatar || 'US'}</Text>
           </View>
           <Text style={styles.userName}>
-            {currentUser.nombre} {currentUser.apellido}
+            {currentUser?.nombre || 'Usuario'} {currentUser?.apellido || ''}
           </Text>
-          <Text style={styles.userEmail}>{currentUser.email}</Text>
-          {currentUser.telefono ? (
+          <Text style={styles.userEmail}>{currentUser?.email || ''}</Text>
+          {currentUser?.telefono ? (
             <Text style={styles.userPhone}>{currentUser.telefono}</Text>
           ) : null}
 
@@ -62,40 +63,8 @@ export const ProfileScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Tarjeta de Cambio de Modo / Perfil */}
-        <TouchableOpacity
-          style={styles.switchRoleCard}
-          onPress={handleToggleRole}
-          activeOpacity={0.8}
-        >
-          <View style={styles.switchIconBox}>
-            <Ionicons name="briefcase-outline" size={22} color={COLORS.primary} />
-          </View>
-          <View style={styles.switchTextBox}>
-            <Text style={styles.switchTitle}>Modo Organizador</Text>
-            <Text style={styles.switchSubtitle}>
-              Publicá eventos, administrá ventas y respondé consultas
-            </Text>
-          </View>
-          <Ionicons name="swap-horizontal" size={20} color={COLORS.primary} />
-        </TouchableOpacity>
-
         {/* Menú de Opciones */}
         <View style={styles.menuContainer}>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => {
-              switchRole(USER_ROLES.ORGANIZER);
-              navigation.navigate('OrganizerDashboard');
-            }}
-          >
-            <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: COLORS.primary, fontWeight: FONTS.semiBold }]}>
-              Crear y gestionar eventos
-            </Text>
-            <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
-          </TouchableOpacity>
-
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => navigation.navigate('Purchases')}
@@ -125,20 +94,22 @@ export const ProfileScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => navigation.navigate('Login')}
-          >
-            <Ionicons name="log-in-outline" size={20} color={COLORS.primary} style={styles.menuIcon} />
-            <Text style={[styles.menuText, { color: COLORS.primary }]}>Cambiar de cuenta / Login</Text>
-            <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.menuItem, styles.menuItemLast]}
             onPress={() => Alert.alert('Soporte', 'Centro de ayuda y atención al cliente: soporte@aiticketit.com')}
           >
             <Ionicons name="help-circle-outline" size={20} color={COLORS.textPrimary} style={styles.menuIcon} />
             <Text style={styles.menuText}>Ayuda y contacto</Text>
             <Ionicons name="chevron-forward" size={16} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuItem, styles.menuItemLast]}
+            onPress={handleLogout}
+          >
+            <Ionicons name="log-out-outline" size={20} color={COLORS.accentRed} style={styles.menuIcon} />
+            <Text style={[styles.menuText, { color: COLORS.accentRed, fontWeight: FONTS.semiBold }]}>
+              Cerrar sesión
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.accentRed} />
           </TouchableOpacity>
         </View>
 

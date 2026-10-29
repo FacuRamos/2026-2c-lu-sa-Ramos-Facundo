@@ -6,9 +6,10 @@ import { secureStoreService, SECURE_KEYS } from '../services/secureStoreService.
 const AppContext = createContext(null);
 
 export const AppProvider = ({ children }) => {
-  const [userRole, setUserRole] = useState(USER_ROLES.BUYER);
-  const [currentUser, setCurrentUser] = useState(DEFAULT_USERS.buyer);
-  const [token, setToken] = useState('demo-token-buyer');
+  const [userRole, setUserRole] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [isReady, setIsReady] = useState(false);
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);
   const [purchases, setPurchases] = useState([]);
@@ -23,15 +24,22 @@ export const AppProvider = ({ children }) => {
       try {
         const savedUser = await secureStoreService.getObject(SECURE_KEYS.USER_DATA);
         const savedToken = await secureStoreService.getItem(SECURE_KEYS.AUTH_TOKEN);
-        if (savedUser) {
+        if (savedUser && savedToken) {
           setCurrentUser(savedUser);
           setUserRole(savedUser.rol === USER_ROLES.ORGANIZER ? USER_ROLES.ORGANIZER : USER_ROLES.BUYER);
-        }
-        if (savedToken) {
           setToken(savedToken);
+        } else {
+          setCurrentUser(null);
+          setUserRole(null);
+          setToken(null);
         }
       } catch (e) {
         console.warn('Error al restaurar sesión segura:', e);
+        setCurrentUser(null);
+        setUserRole(null);
+        setToken(null);
+      } finally {
+        setIsReady(true);
       }
     }
     restoreSession();
@@ -49,23 +57,28 @@ export const AppProvider = ({ children }) => {
       setCategories(cats);
       setEvents(evts);
 
-      if (userRole === USER_ROLES.BUYER) {
-        const userPurchases = await apiService.getComprasByComprador(currentUser.id);
-        setPurchases(userPurchases);
+      if (currentUser?.id) {
+        if (userRole === USER_ROLES.BUYER) {
+          const userPurchases = await apiService.getComprasByComprador(currentUser.id);
+          setPurchases(userPurchases);
+        } else if (userRole === USER_ROLES.ORGANIZER) {
+          const [orgPurchases, stats] = await Promise.all([
+            apiService.getComprasByOrganizador(currentUser.id),
+            apiService.getStatsOrganizador(currentUser.id),
+          ]);
+          setPurchases(orgPurchases);
+          setOrganizerStats(stats);
+        }
       } else {
-        const [orgPurchases, stats] = await Promise.all([
-          apiService.getComprasByOrganizador(currentUser.id),
-          apiService.getStatsOrganizador(currentUser.id),
-        ]);
-        setPurchases(orgPurchases);
-        setOrganizerStats(stats);
+        setPurchases([]);
+        setOrganizerStats(null);
       }
     } catch (err) {
       setError(err.message || 'Error al cargar los datos');
     } finally {
       setIsLoading(false);
     }
-  }, [userRole, currentUser.id]);
+  }, [userRole, currentUser?.id]);
 
   useEffect(() => {
     loadInitialData();
@@ -165,11 +178,17 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(async () => {
-    await secureStoreService.deleteItem(SECURE_KEYS.USER_DATA);
-    await secureStoreService.deleteItem(SECURE_KEYS.AUTH_TOKEN);
-    setCurrentUser(DEFAULT_USERS.buyer);
-    setUserRole(USER_ROLES.BUYER);
+    try {
+      await secureStoreService.deleteItem(SECURE_KEYS.USER_DATA);
+      await secureStoreService.deleteItem(SECURE_KEYS.AUTH_TOKEN);
+    } catch (e) {
+      console.warn('Error al borrar sesión segura:', e);
+    }
+    setCurrentUser(null);
+    setUserRole(null);
     setToken(null);
+    setPurchases([]);
+    setOrganizerStats(null);
   }, []);
 
   // Favoritos
@@ -395,6 +414,7 @@ export const AppProvider = ({ children }) => {
     userRole,
     currentUser,
     token,
+    isReady,
     switchRole,
     loginDemo,
     login,

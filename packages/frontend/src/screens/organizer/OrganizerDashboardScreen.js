@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,7 +18,6 @@ import { QuickAction } from '../../components/organizer/QuickAction.js';
 import { EventCard } from '../../components/events/EventCard.js';
 import { PrimaryButton } from '../../components/common/PrimaryButton.js';
 import { NotificationBell } from '../../components/notifications/NotificationBell.js';
-import { USER_ROLES } from '../../constants/roles.js';
 
 export const OrganizerDashboardScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -25,7 +25,7 @@ export const OrganizerDashboardScreen = ({ navigation }) => {
     currentUser,
     events,
     organizerStats,
-    switchRole,
+    logout,
     refreshData,
   } = useApp();
 
@@ -35,6 +35,17 @@ export const OrganizerDashboardScreen = ({ navigation }) => {
     setRefreshing(true);
     await refreshData();
     setRefreshing(false);
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Cerrar sesión',
+      '¿Deseás cerrar la sesión de organizador?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Cerrar sesión', style: 'destructive', onPress: logout },
+      ]
+    );
   };
 
   // Mis eventos organizados (estrictamente filtrados por el organizador autenticado)
@@ -56,15 +67,12 @@ export const OrganizerDashboardScreen = ({ navigation }) => {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <NotificationBell />
             <TouchableOpacity
-              style={styles.switchBadge}
-              onPress={() => {
-                switchRole(USER_ROLES.BUYER);
-                navigation.navigate('BuyerTabs');
-              }}
-              accessibilityLabel="Volver al modo Comprador"
+              style={styles.logoutBtn}
+              onPress={handleLogout}
+              accessibilityLabel="Cerrar sesión"
             >
-              <Ionicons name="swap-horizontal" size={14} color={COLORS.primary} />
-              <Text style={styles.switchBadgeText}>Comprador</Text>
+              <Ionicons name="log-out-outline" size={16} color={COLORS.accentRed} />
+              <Text style={styles.logoutBtnText}>Salir</Text>
             </TouchableOpacity>
           </View>
         }
@@ -253,5 +261,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textSecondary,
     lineHeight: 18,
+  },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: SPACING.sm + 2,
+    paddingVertical: 5,
+    backgroundColor: '#FDECEB',
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: '#F5C2C0',
+  },
+  logoutBtnText: {
+    fontSize: 12,
+    fontWeight: FONTS.semiBold,
+    color: COLORS.accentRed,
   },
 });

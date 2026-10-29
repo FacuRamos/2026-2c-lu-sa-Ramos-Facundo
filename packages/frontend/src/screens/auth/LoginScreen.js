@@ -18,12 +18,14 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../constants/theme.js';
 
 export const LoginScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const { login, loginDemo, isLoading } = useApp();
+  const { login } = useApp();
 
   const [selectedRole, setSelectedRole] = useState('Comprador'); // 'Comprador' | 'Organizador'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const canGoBack = navigation.canGoBack();
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
@@ -38,27 +40,16 @@ export const LoginScreen = ({ navigation }) => {
         password,
         rolSolicitado: selectedRole,
       });
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainTabs' }],
-      });
+      try {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainTabs' }],
+        });
+      } catch {
+        // Redirección manejada automáticamente por el RootNavigator condicional
+      }
     } catch (err) {
       Alert.alert('Error al iniciar sesión', err.message || 'Verificá tus credenciales.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleQuickDemo = async (rol) => {
-    setSubmitting(true);
-    try {
-      await loginDemo(rol);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainTabs' }],
-      });
-    } catch (err) {
-      Alert.alert('Error', err.message || 'No se pudo iniciar el modo Demo.');
     } finally {
       setSubmitting(false);
     }
@@ -71,8 +62,8 @@ export const LoginScreen = ({ navigation }) => {
     >
       <ScreenHeader
         title="Ingresar a AI Ticket It"
-        showBack
-        onBack={() => navigation.goBack()}
+        showBack={canGoBack}
+        onBack={() => canGoBack && navigation.goBack()}
         showNotificationBell={false}
       />
 
@@ -172,47 +163,6 @@ export const LoginScreen = ({ navigation }) => {
             <Text style={styles.submitButtonText}>
               {submitting ? 'Iniciando...' : 'Iniciar Sesión'}
             </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Acceso Rápido Demo */}
-        <View style={styles.demoCard}>
-          <View style={styles.demoHeader}>
-            <Ionicons name="flash" size={18} color={COLORS.accentAmber} />
-            <Text style={styles.demoTitle}>Acceso Rápido Demo (1-Toque)</Text>
-          </View>
-          <Text style={styles.demoSubtitle}>
-            Ingresá directamente para probar y evaluar las vistas del Trabajo Práctico:
-          </Text>
-
-          <TouchableOpacity
-            style={styles.demoButton}
-            onPress={() => handleQuickDemo('Comprador')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.demoIconWrapper}>
-              <Ionicons name="person-circle" size={24} color={COLORS.primary} />
-            </View>
-            <View style={styles.demoButtonContent}>
-              <Text style={styles.demoButtonTitle}>Entrar como Martina</Text>
-              <Text style={styles.demoButtonRole}>Comprador • Historial de compras y chat</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.demoButton}
-            onPress={() => handleQuickDemo('Organizador')}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.demoIconWrapper, { backgroundColor: '#F0EAD6' }]}>
-              <Ionicons name="business" size={22} color={COLORS.accentAmber} />
-            </View>
-            <View style={styles.demoButtonContent}>
-              <Text style={styles.demoButtonTitle}>Entrar como Luna Producciones</Text>
-              <Text style={styles.demoButtonRole}>Organizador • Panel de ventas y eventos</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
           </TouchableOpacity>
         </View>
 
