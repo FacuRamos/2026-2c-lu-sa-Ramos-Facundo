@@ -101,7 +101,11 @@ export class CompraController {
 
     cancelar = async (req, res, next) => {
         try {
-            const data = validate(cancelarCompraSchema, req.body);
+            const body = {
+                ...req.body,
+                usuarioId: req.user?.sub || req.user?.id || req.body?.usuarioId,
+            };
+            const data = validate(cancelarCompraSchema, body);
             const compra = await this.service.cancelarCompra(req.params.id, data);
             res.status(200).json(compra);
         } catch (err) {
