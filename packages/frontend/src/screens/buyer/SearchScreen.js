@@ -84,6 +84,50 @@ export const SearchScreen = ({ navigation }) => {
         />
       </View>
 
+      {/* Chips Rápidos de Ordenamiento */}
+      <View style={styles.sortChipsSection}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.sortChipsContent}
+        >
+          {sortOptions.map((opt) => {
+            const isSelected = sortOption === opt.id;
+            const iconName =
+              opt.id === 'precio_asc'
+                ? 'trending-up-outline'
+                : opt.id === 'precio_desc'
+                ? 'trending-down-outline'
+                : opt.id === 'fecha_asc'
+                ? 'calendar-outline'
+                : opt.id === 'puntaje_organizador'
+                ? 'star'
+                : 'swap-vertical-outline';
+
+            return (
+              <TouchableOpacity
+                key={opt.id}
+                style={[styles.sortChip, isSelected && styles.sortChipActive]}
+                onPress={() => setSortOption(opt.id)}
+                activeOpacity={0.75}
+              >
+                <Ionicons
+                  name={iconName}
+                  size={13}
+                  color={isSelected ? '#FFFFFF' : COLORS.textSecondary}
+                />
+                <Text
+                  style={[styles.sortChipText, isSelected && styles.sortChipTextActive]}
+                  numberOfLines={1}
+                >
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
       {/* Resultados meta y selector de orden */}
       <View style={styles.metaRow}>
         <Text style={styles.resultsCount}>
@@ -154,7 +198,39 @@ const styles = StyleSheet.create({
   },
   categoriesSection: {
     paddingLeft: SPACING.xl,
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.xs,
+  },
+  sortChipsSection: {
+    marginBottom: SPACING.xs,
+  },
+  sortChipsContent: {
+    paddingHorizontal: SPACING.xl,
+    gap: SPACING.xs,
+    alignItems: 'center',
+  },
+  sortChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 6,
+    borderRadius: RADIUS.round,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  sortChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  sortChipText: {
+    fontSize: 11,
+    fontWeight: FONTS.medium,
+    color: COLORS.textSecondary,
+  },
+  sortChipTextActive: {
+    color: '#FFFFFF',
+    fontWeight: FONTS.semiBold,
   },
   metaRow: {
     flexDirection: 'row',

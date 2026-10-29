@@ -25,18 +25,26 @@ export const EventDetailScreen = ({ route, navigation }) => {
 
   const [event, setEvent] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [organizerReviews, setOrganizerReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
-        const [evt, revs] = await Promise.all([
-          apiService.getEventoById(eventId),
-          apiService.getReseniasByEvento(eventId),
-        ]);
+        const evt = await apiService.getEventoById(eventId);
         setEvent(evt);
-        setReviews(revs);
+
+        const orgId = evt.organizadorId || evt.organizador?.id || evt.organizador;
+        const [revs, orgRevsRes] = await Promise.all([
+          apiService.getReseniasByEvento(eventId).catch(() => []),
+          orgId ? apiService.getReseniasByOrganizador(orgId).catch(() => null) : Promise.resolve(null),
+        ]);
+
+        setReviews(Array.isArray(revs) ? revs : []);
+        const rawOrgReviews = orgRevsRes?.resenias || (Array.isArray(orgRevsRes) ? orgRevsRes : []);
+        const prevRevs = rawOrgReviews.filter((r) => r.eventoId !== eventId);
+        setOrganizerReviews(prevRevs);
       } catch (err) {
         Alert.alert('Error', err.message || 'No se pudo cargar el evento');
         navigation.goBack();
@@ -169,9 +177,9 @@ export const EventDetailScreen = ({ route, navigation }) => {
             />
           ))}
 
-          {/* Sección de Reseñas */}
+          {/* Sección de Reseñas de este Evento */}
           <View style={[styles.sectionHeader, { marginTop: SPACING.xl }]}>
-            <Text style={styles.sectionTitle}>Reseñas de asistentes</Text>
+            <Text style={styles.sectionTitle}>Reseñas de este evento</Text>
             <Text style={styles.reviewCount}>({reviews.length})</Text>
           </View>
 
@@ -189,6 +197,55 @@ export const EventDetailScreen = ({ route, navigation }) => {
             <View style={styles.noReviewsBox}>
               <Text style={styles.noReviewsText}>
                 Aún no hay reseñas registradas para este evento.
+              </Text>
+            </View>
+          )}
+
+          {/* Sección de Reseñas de Eventos Anteriores del Organizador */}
+          <View style={[styles.sectionHeader, { marginTop: SPACING.xl }]}>
+            <View style={{ flex: 1, paddingRight: SPACING.sm }}>
+              <Text style={styles.sectionTitle}>
+                Reseñas de eventos anteriores del organizador
+              </Text>
+              <Text style={styles.sectionSubtitle}>
+                Experiencias de asistentes en producciones de {event.organizadorNombre || 'la productora'}
+              </Text>
+            </View>
+            <Text style={styles.reviewCount}>({organizerReviews.length})</Text>
+          </View>
+
+          {organizerReviews.length > 0 ? (
+            organizerReviews.map((rev) => (
+              <View key={rev.id} style={styles.previousReviewCard}>
+                <View style={styles.prevEventHeader}>
+                  <View style={styles.prevEventBadge}>
+                    <Ionicons name="musical-notes-outline" size={13} color={COLORS.primary} />
+                    <Text style={styles.prevEventTitle} numberOfLines={1}>
+                      {rev.eventoNombre || 'Evento anterior'}
+                    </Text>
+                  </View>
+                  <View style={styles.starsRow}>
+                    <RatingStars rating={rev.puntuacion} size={13} />
+                    <Text style={styles.prevRatingScore}>({rev.puntuacion}.0)</Text>
+                  </View>
+                </View>
+
+                <View style={styles.prevReviewerRow}>
+                  <Ionicons name="person-circle-outline" size={15} color={COLORS.textSecondary} />
+                  <Text style={styles.prevReviewerName}>
+                    {rev.compradorNombre || 'Asistente verificado'}
+                  </Text>
+                </View>
+
+                {rev.detalle ? (
+                  <Text style={styles.reviewComment}>“{rev.detalle}”</Text>
+                ) : null}
+              </View>
+            ))
+          ) : (
+            <View style={styles.noReviewsBox}>
+              <Text style={styles.noReviewsText}>
+                No hay reseñas registradas de eventos anteriores de este organizador.
               </Text>
             </View>
           )}
@@ -385,6 +442,11 @@ const styles = StyleSheet.create({
     fontWeight: FONTS.bold,
     color: COLORS.textPrimary,
   },
+  sectionSubtitle: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
   reviewCount: {
     fontSize: 12,
     color: COLORS.textSecondary,
@@ -397,6 +459,57 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     padding: SPACING.md,
     marginBottom: SPACING.sm,
+  },
+  previousReviewCard: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: 'rgba(70, 113, 122, 0.25)',
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    ...SHADOWS.subtle,
+  },
+  prevEventHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  prevEventBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: RADIUS.xs,
+    maxWidth: '65%',
+  },
+  prevEventTitle: {
+    fontSize: 11,
+    fontWeight: FONTS.semiBold,
+    color: COLORS.primary,
+  },
+  starsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  prevRatingScore: {
+    fontSize: 11,
+    fontWeight: FONTS.bold,
+    color: COLORS.textPrimary,
+  },
+  prevReviewerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 6,
+  },
+  prevReviewerName: {
+    fontSize: 11,
+    fontWeight: FONTS.medium,
+    color: COLORS.textSecondary,
   },
   reviewHeader: {
     flexDirection: 'row',

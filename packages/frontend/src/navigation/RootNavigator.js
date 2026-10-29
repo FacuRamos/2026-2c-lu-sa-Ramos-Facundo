@@ -63,6 +63,8 @@ export const RootNavigator = () => {
             <Stack.Screen name="ManageEvent" component={ManageEventScreen} />
             <Stack.Screen name="OrganizerSales" component={OrganizerSalesScreen} />
             <Stack.Screen name="OrganizerInbox" component={OrganizerInboxScreen} />
+            <Stack.Screen name="Chat" component={ChatScreen} />
+            <Stack.Screen name="PurchaseDetail" component={PurchaseDetailScreen} />
             <Stack.Screen name="Notification" component={NotificationScreen} />
           </>
         ) : (

@@ -54,11 +54,18 @@ export const PurchaseDetailScreen = ({ route, navigation }) => {
   const isUtilizada = purchase.estado === 'UTILIZADA';
   const isCancelada = purchase.estado === 'CANCELADA';
 
+  const cantidad = Number(purchase.cantidad || 1);
   const rawPrecioTotal = Number(purchase.precioTotal ?? purchase.total ?? 0);
   const formattedTotal = isNaN(rawPrecioTotal) ? '$0' : `$${rawPrecioTotal.toLocaleString('es-AR')}`;
+  const rawPrecioUnitario = Number(
+    purchase.precioUnitario ??
+    purchase.entrada?.precioUnitario ??
+    (cantidad > 0 ? Math.round(rawPrecioTotal / cantidad) : rawPrecioTotal)
+  );
+  const formattedUnitPrice = isNaN(rawPrecioUnitario) ? '$0' : `$${rawPrecioUnitario.toLocaleString('es-AR')}`;
   const displayFecha = purchase.eventoFechaTexto || 'Fecha a confirmar';
   const displayLugar = purchase.eventoLugar || 'Lugar a confirmar';
-  const displayTipoEntrada = purchase.tipoEntradaNombre || 'Entrada';
+  const displayTipoEntrada = purchase.tipoEntradaNombre || 'Entrada General';
   const displayImagen = purchase.eventoImagen || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=900&q=85';
   const diasFaltantes = Number(purchase.diasRestantes ?? purchase.diasFaltantesParaEvento ?? 0);
 
@@ -136,9 +143,12 @@ export const PurchaseDetailScreen = ({ route, navigation }) => {
           <Text style={styles.breakdownTitle}>Detalle del pedido</Text>
 
           <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownItem}>
-              {displayTipoEntrada} × {purchase.cantidad || 1}
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.breakdownItemBold}>{displayTipoEntrada}</Text>
+              <Text style={styles.breakdownItemSub}>
+                Precio: {formattedUnitPrice} c/u · {cantidad} {cantidad === 1 ? 'entrada' : 'entradas'}
+              </Text>
+            </View>
             <Text style={styles.breakdownPrice}>
               {formattedTotal}
             </Text>
@@ -152,6 +162,57 @@ export const PurchaseDetailScreen = ({ route, navigation }) => {
               {formattedTotal}
             </Text>
           </View>
+        </View>
+
+        {/* Sección de Entradas Individuales */}
+        <View style={styles.ticketsSection}>
+          <View style={styles.ticketsSectionHeader}>
+            <Text style={styles.ticketsSectionTitle}>
+              Tus entradas ({cantidad})
+            </Text>
+            <Text style={styles.ticketsSectionSubtitle}>
+              Pases individuales con código de acceso
+            </Text>
+          </View>
+
+          {Array.from({ length: cantidad }).map((_, idx) => (
+            <View key={`ticket-${idx}`} style={styles.individualTicketCard}>
+              <View style={styles.individualTicketHeader}>
+                <View style={styles.ticketBadgeRow}>
+                  <Ionicons name="ticket" size={14} color={COLORS.primary} />
+                  <Text style={styles.individualTicketBadgeText}>
+                    Entrada {idx + 1} de {cantidad}
+                  </Text>
+                </View>
+                <StatusBadge status={purchase.estado} size="sm" />
+              </View>
+
+              <View style={styles.individualTicketBody}>
+                <View style={styles.ticketBodyCol}>
+                  <Text style={styles.individualTicketType}>{displayTipoEntrada}</Text>
+                  <Text style={styles.individualTicketPlace} numberOfLines={1}>
+                    {displayLugar}
+                  </Text>
+                </View>
+                <View style={styles.ticketBodyPriceCol}>
+                  <Text style={styles.individualTicketPriceLabel}>Importe</Text>
+                  <Text style={styles.individualTicketPriceVal}>{formattedUnitPrice}</Text>
+                </View>
+              </View>
+
+              <View style={styles.ticketDashedLine} />
+
+              <View style={styles.individualTicketFooter}>
+                <View style={styles.barcodeIconWrap}>
+                  <Ionicons name="barcode-outline" size={20} color={COLORS.textSecondary} />
+                  <Text style={styles.ticketCodeText}>
+                    ACCESO: {purchase.id?.slice(0, 8).toUpperCase()}-{(idx + 1).toString().padStart(2, '0')}
+                  </Text>
+                </View>
+                <Text style={styles.ticketAccessNotice}>Válido para 1 persona</Text>
+              </View>
+            </View>
+          ))}
         </View>
 
         {/* Días restantes o Aviso de estado */}
@@ -315,13 +376,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 4,
   },
+  breakdownItemBold: {
+    fontSize: 13,
+    fontWeight: FONTS.bold,
+    color: COLORS.textPrimary,
+  },
+  breakdownItemSub: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
   breakdownItem: {
     fontSize: 12,
     color: COLORS.textSecondary,
   },
   breakdownPrice: {
-    fontSize: 12,
-    fontWeight: FONTS.semiBold,
+    fontSize: 13,
+    fontWeight: FONTS.bold,
     color: COLORS.textPrimary,
   },
   divider: {
@@ -337,6 +408,110 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: 16,
     fontWeight: FONTS.bold,
+    color: COLORS.textPrimary,
+  },
+  ticketsSection: {
+    marginBottom: SPACING.md,
+  },
+  ticketsSectionHeader: {
+    marginBottom: SPACING.sm,
+  },
+  ticketsSectionTitle: {
+    fontSize: 14,
+    fontWeight: FONTS.bold,
+    color: COLORS.textPrimary,
+  },
+  ticketsSectionSubtitle: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  individualTicketCard: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    marginBottom: SPACING.sm,
+    ...SHADOWS.subtle,
+  },
+  individualTicketHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.xs,
+  },
+  ticketBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  individualTicketBadgeText: {
+    fontSize: 11,
+    fontWeight: FONTS.bold,
+    color: COLORS.primary,
+    textTransform: 'uppercase',
+  },
+  individualTicketBody: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SPACING.xs,
+  },
+  ticketBodyCol: {
+    flex: 1,
+  },
+  individualTicketType: {
+    fontSize: 14,
+    fontWeight: FONTS.bold,
+    color: COLORS.textPrimary,
+  },
+  individualTicketPlace: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  ticketBodyPriceCol: {
+    alignItems: 'flex-end',
+  },
+  individualTicketPriceLabel: {
+    fontSize: 10,
+    color: COLORS.textMuted,
+  },
+  individualTicketPriceVal: {
+    fontSize: 14,
+    fontWeight: FONTS.bold,
+    color: COLORS.primary,
+  },
+  ticketDashedLine: {
+    height: 1,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    borderStyle: 'dashed',
+    marginVertical: SPACING.xs,
+  },
+  individualTicketFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 4,
+  },
+  barcodeIconWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  ticketCodeText: {
+    fontSize: 11,
+    fontWeight: FONTS.semiBold,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    color: COLORS.textPrimary,
+  },
+  ticketAccessNotice: {
+    fontSize: 10,
+    color: COLORS.textSecondary,
+    fontStyle: 'italic',
+  },
     color: COLORS.textPrimary,
   },
   statusNotice: {

@@ -34,16 +34,32 @@ export function filterAndSortEvents(events = [], { query = '', selectedCategory 
   // 3. Ordenamiento multi-criterio
   switch (sortOption) {
     case 'precio_asc':
-      result.sort((a, b) => (a.precioMinimo ?? 0) - (b.precioMinimo ?? 0));
+      result.sort((a, b) => {
+        const valA = a.precioMinimo != null ? Number(a.precioMinimo) : Infinity;
+        const valB = b.precioMinimo != null ? Number(b.precioMinimo) : Infinity;
+        return valA - valB;
+      });
       break;
     case 'precio_desc':
-      result.sort((a, b) => (b.precioMinimo ?? 0) - (a.precioMinimo ?? 0));
+      result.sort((a, b) => {
+        const valA = a.precioMinimo != null ? Number(a.precioMinimo) : 0;
+        const valB = b.precioMinimo != null ? Number(b.precioMinimo) : 0;
+        return valB - valA;
+      });
       break;
     case 'fecha_asc':
-      result.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+      result.sort((a, b) => {
+        const dateA = a.fecha ? new Date(a.fecha).getTime() : Infinity;
+        const dateB = b.fecha ? new Date(b.fecha).getTime() : Infinity;
+        return dateA - dateB;
+      });
       break;
     case 'puntaje_organizador':
-      result.sort((a, b) => (b.organizadorPuntaje || 0) - (a.organizadorPuntaje || 0));
+      result.sort((a, b) => {
+        const scoreA = Number(a.organizadorPuntaje ?? a.puntajeOrganizador ?? 0);
+        const scoreB = Number(b.organizadorPuntaje ?? b.puntajeOrganizador ?? 0);
+        return scoreB - scoreA;
+      });
       break;
     default:
       break;

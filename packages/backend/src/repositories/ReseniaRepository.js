@@ -16,8 +16,8 @@ export class ReseniaRepository extends BaseInMemoryRepository {
     async findByOrganizador(organizadorId) {
         if (!organizadorId) return [];
         return this.getAll(r => {
-            const org = r.evento?.organizador;
-            const orgId = typeof org === 'object' ? org?.id : org;
+            const org = r.evento?.organizador || r.organizador;
+            const orgId = typeof org === 'object' ? (org?.id || org?.organizadorId) : (org || r.organizadorId);
             return orgId === organizadorId;
         });
     }

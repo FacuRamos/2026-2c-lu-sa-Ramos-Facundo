@@ -354,6 +354,8 @@ export const INITIAL_REVIEWS = [
   {
     id: 'res-001',
     eventoId: 'ev-teatro-funcion',
+    eventoNombre: 'El Método Gronholm',
+    organizadorId: 'usr-org-2',
     compradorId: 'usr-comprador-2',
     compradorNombre: 'Tomás R.',
     puntuacion: 5,
@@ -363,6 +365,8 @@ export const INITIAL_REVIEWS = [
   {
     id: 'res-002',
     eventoId: 'ev-luna-park',
+    eventoNombre: 'Luna Park Sessions',
+    organizadorId: 'usr-org-1',
     compradorId: 'usr-comprador-1',
     compradorNombre: 'Sofía M.',
     puntuacion: 5,
@@ -372,6 +376,8 @@ export const INITIAL_REVIEWS = [
   {
     id: 'res-003',
     eventoId: 'ev-acustico-pasado',
+    eventoNombre: 'Noche Acústica Íntima',
+    organizadorId: 'usr-org-1',
     compradorId: 'usr-comprador-3',
     compradorNombre: 'Lucía G.',
     puntuacion: 5,

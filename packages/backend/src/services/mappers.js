@@ -54,6 +54,8 @@ export function mapEventoSummaryDto(evento) {
         imagen,
         organizadorId: typeof org === 'object' && org !== null ? org.id : org,
         organizadorNombre: typeof org === 'object' && org !== null ? (org.nombreCompleto || org.nombre) : 'Organizador',
+        organizadorPuntaje: typeof evento.organizadorPuntaje === 'number' ? evento.organizadorPuntaje : 5.0,
+        puntajeOrganizador: typeof evento.organizadorPuntaje === 'number' ? evento.organizadorPuntaje : 5.0,
         precioMinimo: typeof evento.obtenerPrecioMinimo === 'function' ? evento.obtenerPrecioMinimo() : (evento.precioMinimo ?? null),
         precioMaximo: typeof evento.obtenerPrecioMaximo === 'function' ? evento.obtenerPrecioMaximo() : (evento.precioMaximo ?? null),
         entradasDisponiblesTotales: typeof evento.totalEntradasDisponibles === 'function' ? evento.totalEntradasDisponibles() : (evento.entradasDisponiblesTotales ?? 0),

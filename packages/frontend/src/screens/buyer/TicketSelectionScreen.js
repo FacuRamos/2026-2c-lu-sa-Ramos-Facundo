@@ -174,9 +174,14 @@ export const TicketSelectionScreen = ({ route, navigation }) => {
           {selectedItems.length > 0 ? (
             selectedItems.map((item) => (
               <View key={item.tipo.id} style={styles.summaryRow}>
-                <Text style={styles.summaryItemText}>
-                  {item.tipo.nombre} × {item.qty}
-                </Text>
+                <View>
+                  <Text style={styles.summaryItemText}>
+                    {item.tipo.nombre}
+                  </Text>
+                  <Text style={styles.summaryItemSub}>
+                    ${Number(item.tipo.precio).toLocaleString('es-AR')} c/u · {item.qty} {item.qty === 1 ? 'entrada' : 'entradas'}
+                  </Text>
+                </View>
                 <Text style={styles.summaryItemPrice}>
                   ${item.itemTotal.toLocaleString('es-AR')}
                 </Text>
@@ -283,7 +288,13 @@ const styles = StyleSheet.create({
   },
   summaryItemText: {
     fontSize: 12,
+    fontWeight: FONTS.semiBold,
     color: COLORS.textPrimary,
+  },
+  summaryItemSub: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
   summaryItemPrice: {
     fontSize: 12,
