@@ -31,9 +31,28 @@ export class ReseniaService {
             throw new NotFoundError(`Evento con id "${data.eventoId}" no encontrado`);
         }
 
-        const compra = await this.compraRepo.findById(data.compraId);
-        if (!compra) {
-            throw new NotFoundError(`Compra con id "${data.compraId}" no encontrada`);
+        let compra;
+        if (data.compraId) {
+            compra = await this.compraRepo.findById(data.compraId);
+            if (!compra) {
+                throw new NotFoundError(`Compra con id "${data.compraId}" no encontrada`);
+            }
+        } else {
+            const compras = await this.compraRepo.findByComprador(comprador.id);
+            compra = compras.find(c => {
+                const cEvId = typeof c.evento === 'object' && c.evento !== null ? c.evento.id : (c.eventoId || c.evento);
+                const cEst = typeof c.estado === 'object' && c.estado !== null ? c.estado.nombre : c.estado;
+                return cEvId === data.eventoId && cEst === 'UTILIZADA';
+            });
+            if (!compra) {
+                compra = compras.find(c => {
+                    const cEvId = typeof c.evento === 'object' && c.evento !== null ? c.evento.id : (c.eventoId || c.evento);
+                    return cEvId === data.eventoId;
+                });
+            }
+            if (!compra) {
+                throw new NotFoundError('No se encontró una compra asociada para calificar este evento');
+            }
         }
 
         // Valida que la compra esté en estado UTILIZADA y corresponda al usuario y evento (CU9)

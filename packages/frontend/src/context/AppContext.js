@@ -342,13 +342,14 @@ export const AppProvider = ({ children }) => {
 
   // Reseñas
   const createReview = useCallback(
-    async ({ eventoId, puntuacion, detalle }) => {
+    async ({ eventoId, compraId, puntuacion, detalle }) => {
       setIsLoading(true);
       try {
         const resenia = await apiService.crearResenia({
-          compradorId: currentUser.id,
-          compradorNombre: `${currentUser.nombre} ${currentUser.apellido}`,
+          compradorId: currentUser?.id,
+          compradorNombre: `${currentUser?.nombre || ''} ${currentUser?.apellido || ''}`.trim(),
           eventoId,
+          compraId,
           puntuacion,
           detalle,
         });

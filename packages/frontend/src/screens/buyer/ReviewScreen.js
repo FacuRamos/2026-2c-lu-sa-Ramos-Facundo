@@ -86,8 +86,17 @@ export const ReviewScreen = ({ route, navigation }) => {
 
     try {
       setSubmitting(true);
+      const usedPurchase = purchases.find(
+        (p) =>
+          ((resolvedEventId && (p.eventoId === resolvedEventId || p.evento?.id === resolvedEventId)) ||
+            (purchaseId && p.id === purchaseId)) &&
+          (p.estado === 'UTILIZADA' || p.estado?.nombre === 'UTILIZADA')
+      );
+      const activePurchaseId = purchaseId || targetPurchase?.id || usedPurchase?.id;
+
       await createReview({
         eventoId: resolvedEventId,
+        compraId: activePurchaseId,
         puntuacion: rating,
         detalle: comment.trim(),
       });

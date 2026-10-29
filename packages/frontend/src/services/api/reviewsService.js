@@ -29,7 +29,7 @@ export const reviewsService = {
     }
   },
 
-  async crearResenia({ compradorId, compradorNombre, eventoId, puntuacion, detalle }) {
+  async crearResenia({ compradorId, compradorNombre, eventoId, compraId, puntuacion, detalle }) {
     if (!puntuacion || puntuacion < 1 || puntuacion > 5) {
       throw new Error('La puntuación debe ser un número entero entre 1 y 5');
     }
@@ -39,13 +39,18 @@ export const reviewsService = {
         compradorId,
         compradorNombre,
         eventoId,
+        compraId,
         puntuacion,
         detalle: detalle ? detalle.trim() : '',
       });
     } catch (err) {
       if (err instanceof NetworkError) {
         const tieneCompraUtilizada = localStore.purchases.some(
-          (p) => p.compradorId === compradorId && p.eventoId === eventoId && p.estado === 'UTILIZADA'
+          (p) =>
+            ((p.compradorId === compradorId || p.comprador?.id === compradorId) &&
+             (p.eventoId === eventoId || p.evento?.id === eventoId) &&
+             (p.estado === 'UTILIZADA' || p.estado?.nombre === 'UTILIZADA')) ||
+            (compraId && p.id === compraId && (p.estado === 'UTILIZADA' || p.estado?.nombre === 'UTILIZADA'))
         );
 
         if (!tieneCompraUtilizada) {
@@ -55,11 +60,12 @@ export const reviewsService = {
         const nuevaResenia = {
           id: `res-${Date.now()}`,
           eventoId,
+          compraId,
           compradorId,
           compradorNombre: compradorNombre || 'Comprador',
           puntuacion,
           detalle: detalle ? detalle.trim() : '',
-          fecha: 'Recién',
+          fecha: new Date().toISOString(),
         };
 
         localStore.reviews.unshift(nuevaResenia);

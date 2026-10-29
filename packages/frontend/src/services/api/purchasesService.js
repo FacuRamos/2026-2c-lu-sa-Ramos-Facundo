@@ -8,8 +8,11 @@ export function adaptCompra(dto) {
   const ev = dto.evento || {};
   const tipo = dto.entrada || {};
   const evFecha = ev.fecha ? new Date(ev.fecha) : null;
-  const fechaTexto = dto.eventoFechaTexto || (evFecha && !isNaN(evFecha.getTime())
-    ? evFecha.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · 20:30 hs'
+  const horaStr = evFecha && !isNaN(evFecha.getTime())
+    ? evFecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })
+    : '';
+  const fechaTexto = dto.eventoFechaTexto || ev.fechaTexto || (evFecha && !isNaN(evFecha.getTime())
+    ? `${evFecha.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })} · ${horaStr} hs`
     : 'Próximamente');
 
   const total = Number(dto.precioTotal ?? dto.total ?? 0);

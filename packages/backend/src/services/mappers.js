@@ -35,9 +35,12 @@ export function mapEventoSummaryDto(evento) {
     const media = Array.isArray(evento.multimedia) && evento.multimedia.length > 0 ? evento.multimedia : [];
     const imagen = media[0] || evento.imagen || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=900&q=85';
     const fechaObj = evento.fecha instanceof Date ? evento.fecha : (evento.fecha ? new Date(evento.fecha) : null);
-    const fechaTexto = fechaObj && !isNaN(fechaObj.getTime())
-        ? fechaObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · 20:30 hs'
-        : 'Próximamente';
+    const horaStr = fechaObj && !isNaN(fechaObj.getTime())
+        ? fechaObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })
+        : '';
+    const fechaTexto = evento.fechaTexto || (fechaObj && !isNaN(fechaObj.getTime())
+        ? `${fechaObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })} · ${horaStr} hs`
+        : 'Próximamente');
 
     return {
         id: evento.id,
@@ -107,9 +110,12 @@ export function mapCompraDto(compra) {
     const diasFaltantes = typeof compra.diasParaElEvento === 'function' ? compra.diasParaElEvento() : null;
     const evMedia = Array.isArray(evObj.multimedia) && evObj.multimedia.length > 0 ? evObj.multimedia[0] : null;
     const img = evMedia || evObj.imagen || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=900&q=85';
-    const fechaTexto = evFecha && !isNaN(evFecha.getTime())
-        ? evFecha.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · 20:30 hs'
-        : 'Próximamente';
+    const evHoraStr = evFecha && !isNaN(evFecha.getTime())
+        ? evFecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })
+        : '';
+    const fechaTexto = compra.eventoFechaTexto || evObj.fechaTexto || (evFecha && !isNaN(evFecha.getTime())
+        ? `${evFecha.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })} · ${evHoraStr} hs`
+        : 'Próximamente');
 
     return {
         id: compra.id,
