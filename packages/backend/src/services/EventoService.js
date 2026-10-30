@@ -163,13 +163,30 @@ export class EventoService {
                 precioTotal: c.total,
                 estado: c.estado,
                 fechaCompra: c.fechaCompra instanceof Date ? c.fechaCompra.toISOString() : c.fechaCompra,
-                mensajes: (c.mensajes || []).map(m => ({
-                    id: m.id,
-                    usuarioId: typeof m.usuario === 'object' && m.usuario ? m.usuario.id : m.usuario,
-                    emisor: typeof m.usuario === 'object' && m.usuario ? (m.usuario.nombreCompleto || m.usuario.nombre) : 'Usuario',
-                    mensaje: m.mensaje,
-                    enviado: m.enviado instanceof Date ? m.enviado.toISOString() : m.enviado
-                }))
+                mensajes: (c.mensajes || []).map(m => {
+                    const uId = typeof m.usuario === 'object' && m.usuario ? m.usuario.id : m.usuario;
+                    const uNombre = typeof m.usuario === 'object' && m.usuario ? (m.usuario.nombreCompleto || m.usuario.nombre) : 'Usuario';
+                    const msgTexto = m.mensaje || m.texto || '';
+                    const fechaObj = m.enviado instanceof Date ? m.enviado : (m.enviado ? new Date(m.enviado) : new Date());
+                    const fechaTexto = !isNaN(fechaObj.getTime())
+                        ? fechaObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+                        : '';
+                    const compradorId = typeof comp === 'object' && comp ? comp.id : comp;
+                    const esComprador = uId === compradorId;
+
+                    return {
+                        id: m.id,
+                        usuarioId: uId,
+                        remitenteId: uId,
+                        emisor: uNombre,
+                        remitenteNombre: uNombre,
+                        mensaje: msgTexto,
+                        texto: msgTexto,
+                        enviado: fechaObj.toISOString(),
+                        fecha: fechaTexto,
+                        esComprador
+                    };
+                })
             };
         });
     }

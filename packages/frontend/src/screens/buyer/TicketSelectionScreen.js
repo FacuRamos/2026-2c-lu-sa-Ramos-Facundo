@@ -92,35 +92,56 @@ export const TicketSelectionScreen = ({ route, navigation }) => {
   }
 
   const handleConfirmPurchase = async () => {
-    if (totalTickets === 0) {
+    if (totalTickets === 0 || selectedItems.length === 0) {
       Alert.alert('Atención', 'Por favor seleccioná al menos una entrada para continuar.');
       return;
     }
 
-    // Permitimos confirmar compra del tipo seleccionado
-    const firstSelected = selectedItems[0];
-    if (!firstSelected) return;
-
     try {
       setSubmitting(true);
-      const purchase = await createPurchase({
-        eventoId: event.id,
-        tipoEntradaId: firstSelected.tipo.id,
-        cantidad: firstSelected.qty,
-      });
+      const createdPurchases = [];
+      for (const item of selectedItems) {
+        const p = await createPurchase({
+          eventoId: event.id,
+          tipoEntradaId: item.tipo.id,
+          cantidad: item.qty,
+        });
+        createdPurchases.push(p);
+      }
+
+      const isMultiType = createdPurchases.length > 1;
+      const summaryText = selectedItems
+        .map((it) => `• ${it.qty} × ${it.tipo.nombre} ($${it.itemTotal.toLocaleString('es-AR')})`)
+        .join('\n');
 
       Alert.alert(
         '¡Compra confirmada!',
-        `Tu compra para ${event.nombre} fue registrada con éxito. Podés consultarla en "Mis compras".`,
-        [
-          {
-            text: 'Ver detalle de compra',
-            onPress: () =>
-              navigation.replace('PurchaseDetail', {
-                purchaseId: purchase.id,
-              }),
-          },
-        ]
+        isMultiType
+          ? `Tus compras para ${event.nombre} fueron registradas con éxito:\n\n${summaryText}\n\nTotal: $${totalAmount.toLocaleString('es-AR')}. Podés consultarlas en "Mis compras".`
+          : `Tu compra para ${event.nombre} fue registrada con éxito (${selectedItems[0].qty} × ${selectedItems[0].tipo.nombre}). Podés consultarla en "Mis compras".`,
+        isMultiType
+          ? [
+              {
+                text: 'Ver mis compras',
+                onPress: () => navigation.navigate('Purchases'),
+              },
+              {
+                text: 'Ver detalle de entrada',
+                onPress: () =>
+                  navigation.replace('PurchaseDetail', {
+                    purchaseId: createdPurchases[0].id,
+                  }),
+              },
+            ]
+          : [
+              {
+                text: 'Ver detalle de compra',
+                onPress: () =>
+                  navigation.replace('PurchaseDetail', {
+                    purchaseId: createdPurchases[0].id,
+                  }),
+              },
+            ]
       );
     } catch (err) {
       Alert.alert('Error al comprar', err.message || 'Ocurrió un error inesperado al procesar la compra.');

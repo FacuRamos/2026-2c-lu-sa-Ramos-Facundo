@@ -69,6 +69,9 @@ export const PurchaseDetailScreen = ({ route, navigation }) => {
   const displayTipoEntrada = purchase.tipoEntradaNombre || 'Entrada General';
   const displayImagen = purchase.eventoImagen || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=900&q=85';
   const diasFaltantes = Number(purchase.diasRestantes ?? purchase.diasFaltantesParaEvento ?? 0);
+  const otherPurchasesForSameEvent = (purchases || []).filter(
+    (p) => p.eventoId === purchase?.eventoId && p.id !== purchase?.id
+  );
 
   const handleCancel = () => {
     Alert.alert(
@@ -215,6 +218,40 @@ export const PurchaseDetailScreen = ({ route, navigation }) => {
             </View>
           ))}
         </View>
+
+        {/* Otras compras para este mismo evento */}
+        {otherPurchasesForSameEvent.length > 0 ? (
+          <View style={styles.otherPurchasesSection}>
+            <Text style={styles.otherPurchasesTitle}>
+              Otras entradas tuyas para este evento ({otherPurchasesForSameEvent.length})
+            </Text>
+            {otherPurchasesForSameEvent.map((other) => (
+              <TouchableOpacity
+                key={other.id}
+                style={styles.otherPurchaseCard}
+                onPress={() =>
+                  navigation.replace('PurchaseDetail', {
+                    purchaseId: other.id,
+                  })
+                }
+                activeOpacity={0.8}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.otherPurchaseType}>
+                    {other.tipoEntradaNombre} · {other.cantidad} {other.cantidad === 1 ? 'entrada' : 'entradas'}
+                  </Text>
+                  <Text style={styles.otherPurchasePrice}>
+                    ${Number(other.precioTotal || other.total || 0).toLocaleString('es-AR')}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <StatusBadge status={other.estado} size="sm" />
+                  <Ionicons name="chevron-forward" size={16} color={COLORS.textSecondary} />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : null}
 
         {/* Días restantes o Aviso de estado */}
         <View style={styles.statusNotice}>
@@ -512,6 +549,36 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: COLORS.textSecondary,
     fontStyle: 'italic',
+  },
+  otherPurchasesSection: {
+    marginBottom: SPACING.md,
+  },
+  otherPurchasesTitle: {
+    fontSize: 13,
+    fontWeight: FONTS.bold,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+  },
+  otherPurchaseCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.md,
+    padding: SPACING.sm,
+    marginBottom: SPACING.xs,
+  },
+  otherPurchaseType: {
+    fontSize: 12,
+    fontWeight: FONTS.semiBold,
+    color: COLORS.textPrimary,
+  },
+  otherPurchasePrice: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
   statusNotice: {
     paddingVertical: SPACING.md,

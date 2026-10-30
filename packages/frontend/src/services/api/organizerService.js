@@ -62,18 +62,52 @@ export const organizerService = {
 
   async getConversacionesOrganizador(organizadorId) {
     try {
-      return await webApiCaller.get(`/eventos/organizador/${organizadorId}/conversaciones`);
+      const res = await webApiCaller.get(`/eventos/organizador/${organizadorId}/conversaciones`);
+      const list = Array.isArray(res) ? res : [];
+      return list.map((c) => {
+        const uMsg = c.ultimoMensaje;
+        const msgText = uMsg ? (uMsg.texto || uMsg.mensaje || '') : '';
+        const esComprador = uMsg ? (uMsg.esComprador ?? (uMsg.remitenteId === c.compradorId || uMsg.usuarioId === c.compradorId)) : false;
+        const total = c.totalMensajes ?? c.totalMessages ?? (c.mensajes ? c.mensajes.length : 0);
+        return {
+          ...c,
+          totalMensajes: total,
+          totalMessages: total,
+          ultimoMensaje: uMsg
+            ? {
+                ...uMsg,
+                texto: msgText,
+                mensaje: msgText,
+                esComprador,
+              }
+            : null,
+        };
+      });
     } catch (err) {
       if (err instanceof NetworkError) {
         const compras = await this.getComprasByOrganizador(organizadorId);
-        return compras.map((c) => ({
-          compraId: c.id,
-          compradorNombre: c.compradorNombre,
-          eventoTitulo: c.eventoTitulo,
-          ultimoMensaje: c.mensajes && c.mensajes.length > 0 ? c.mensajes[c.mensajes.length - 1] : null,
-          totalMensajes: (c.mensajes && c.mensajes.length) || 0,
-          tipoEntradaNombre: c.tipoEntradaNombre,
-        }));
+        return compras.map((c) => {
+          const uMsg = c.mensajes && c.mensajes.length > 0 ? c.mensajes[c.mensajes.length - 1] : null;
+          const msgText = uMsg ? (uMsg.texto || uMsg.mensaje || '') : '';
+          const esComprador = uMsg ? (uMsg.esComprador ?? (uMsg.remitenteId === c.compradorId || uMsg.usuarioId === c.compradorId)) : false;
+          const total = (c.mensajes && c.mensajes.length) || 0;
+          return {
+            compraId: c.id,
+            compradorNombre: c.compradorNombre,
+            eventoTitulo: c.eventoTitulo,
+            ultimoMensaje: uMsg
+              ? {
+                  ...uMsg,
+                  texto: msgText,
+                  mensaje: msgText,
+                  esComprador,
+                }
+              : null,
+            totalMessages: total,
+            totalMensajes: total,
+            tipoEntradaNombre: c.tipoEntradaNombre,
+          };
+        });
       }
       throw err;
     }

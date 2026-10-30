@@ -108,14 +108,14 @@ export const OrganizerInboxScreen = ({ navigation }) => {
                     numberOfLines={1}
                   >
                     {hasMessages
-                      ? `${conv.ultimoMensaje.esComprador ? '' : 'Vos: '}${conv.ultimoMensaje.texto}`
+                      ? `${(conv.ultimoMensaje.esComprador || conv.ultimoMensaje.remitenteId === conv.compradorId || conv.ultimoMensaje.usuarioId === conv.compradorId) ? '' : 'Vos: '}${conv.ultimoMensaje.texto || conv.ultimoMensaje.mensaje || ''}`
                       : 'Sin mensajes aún. Tocá para iniciar conversación.'}
                   </Text>
                 </View>
 
-                {conv.totalMessages > 0 ? (
+                {(conv.totalMessages > 0 || conv.totalMensajes > 0) ? (
                   <View style={styles.badgeCount}>
-                    <Text style={styles.badgeText}>{conv.totalMessages}</Text>
+                    <Text style={styles.badgeText}>{conv.totalMessages || conv.totalMensajes}</Text>
                   </View>
                 ) : (
                   <Ionicons name="chevron-forward" size={16} color={COLORS.textSecondary} />
