@@ -5,6 +5,8 @@ node_modules/
 
 # Testing
 coverage/
+e2e/test-results/
+e2e/report/
 
 # Expo / React Native
 .expo/

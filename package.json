@@ -12,6 +12,12 @@
     "dev:backend": "npm run dev --prefix packages/backend",
     "test:backend": "npm test --prefix packages/backend",
     "test:frontend": "npm test --prefix packages/frontend",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report e2e/report",
     "test": "npm run test:backend && npm run test:frontend"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
   }
 }

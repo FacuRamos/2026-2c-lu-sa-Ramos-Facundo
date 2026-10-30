@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +19,10 @@ export const ProfileScreen = ({ navigation }) => {
   const { currentUser, logout, purchases, favorites } = useApp();
 
   const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      logout();
+      return;
+    }
     Alert.alert(
       'Cerrar sesión',
       '¿Estás seguro de que deseás cerrar tu sesión?',

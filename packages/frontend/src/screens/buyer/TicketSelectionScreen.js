@@ -6,6 +6,7 @@ import {
   ScrollView,
   Image,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -113,6 +114,13 @@ export const TicketSelectionScreen = ({ route, navigation }) => {
       const summaryText = selectedItems
         .map((it) => `• ${it.qty} × ${it.tipo.nombre} ($${it.itemTotal.toLocaleString('es-AR')})`)
         .join('\n');
+
+      if (Platform.OS === 'web') {
+        navigation.replace('PurchaseDetail', {
+          purchaseId: createdPurchases[0].id,
+        });
+        return;
+      }
 
       Alert.alert(
         '¡Compra confirmada!',

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,6 +39,10 @@ export const OrganizerDashboardScreen = ({ navigation }) => {
   };
 
   const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      logout();
+      return;
+    }
     Alert.alert(
       'Cerrar sesión',
       '¿Deseás cerrar la sesión de organizador?',

@@ -225,6 +225,15 @@ export const CreateEventScreen = ({ navigation }) => {
         })),
       });
 
+      if (Platform.OS === 'web') {
+        if (nuevo?.id) {
+          navigation.replace('ManageEvent', { eventId: nuevo.id });
+        } else {
+          navigation.goBack();
+        }
+        return;
+      }
+
       Alert.alert(
         '¡Evento publicado!',
         `El evento "${nuevo.nombre}" ya se encuentra publicado y disponible para la venta.`,
