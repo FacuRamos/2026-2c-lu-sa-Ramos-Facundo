@@ -234,22 +234,28 @@ export const AppProvider = ({ children }) => {
 
         // Disparar notificaciones para comprador y organizador
         try {
+          const eventObj = events.find(e => e.id === eventoId);
+          const organizerId = eventObj?.organizadorId || eventObj?.organizador?.id || nuevaCompra.organizadorId;
+
           await apiService.crearNotificacion({
             usuarioId: currentUser.id,
             rolDestino: 'Comprador',
             tipo: 'COMPRA_CONFIRMADA',
             titulo: '¡Compra confirmada!',
-            mensaje: `Tu compra para "${nuevaCompra.eventoTitulo || 'el evento'}" fue confirmada con éxito.`,
+            mensaje: `Tu compra para "${nuevaCompra.eventoTitulo || eventObj?.nombre || 'el evento'}" fue confirmada con éxito.`,
             entidadId: nuevaCompra.id,
           });
-          await apiService.crearNotificacion({
-            usuarioId: 'usr-org-1',
-            rolDestino: 'Organizador',
-            tipo: 'NUEVA_VENTA',
-            titulo: 'Nueva entrada vendida',
-            mensaje: `${currentUser.nombre} compró ${cantidad} entrada(s) para "${nuevaCompra.eventoTitulo || 'tu evento'}".`,
-            entidadId: nuevaCompra.eventoId,
-          });
+
+          if (organizerId) {
+            await apiService.crearNotificacion({
+              usuarioId: organizerId,
+              rolDestino: 'Organizador',
+              tipo: 'NUEVA_VENTA',
+              titulo: 'Nueva entrada vendida',
+              mensaje: `${currentUser.nombre} compró ${cantidad} entrada(s) para "${nuevaCompra.eventoTitulo || eventObj?.nombre || 'tu evento'}".`,
+              entidadId: nuevaCompra.eventoId,
+            });
+          }
         } catch (e) {
           console.warn('Error al disparar notificación de compra:', e);
         }
@@ -277,6 +283,9 @@ export const AppProvider = ({ children }) => {
         setEvents(updatedEvents);
 
         try {
+          const compra = purchases.find(p => p.id === compraId);
+          const organizerId = compra?.organizadorId || compra?.evento?.organizadorId;
+
           await apiService.crearNotificacion({
             usuarioId: currentUser.id,
             rolDestino: 'Comprador',
@@ -285,14 +294,17 @@ export const AppProvider = ({ children }) => {
             mensaje: 'Tu compra fue cancelada y el cupo ha sido restituido.',
             entidadId: compraId,
           });
-          await apiService.crearNotificacion({
-            usuarioId: 'usr-org-1',
-            rolDestino: 'Organizador',
-            tipo: 'COMPRA_CANCELADA',
-            titulo: 'Compra cancelada por el comprador',
-            mensaje: `Una compra de ${currentUser.nombre} fue cancelada. Cupo reintegrado.`,
-            entidadId: compraId,
-          });
+
+          if (organizerId) {
+            await apiService.crearNotificacion({
+              usuarioId: organizerId,
+              rolDestino: 'Organizador',
+              tipo: 'COMPRA_CANCELADA',
+              titulo: 'Compra cancelada por el comprador',
+              mensaje: `Una compra de ${currentUser.nombre} fue cancelada. Cupo reintegrado.`,
+              entidadId: compraId,
+            });
+          }
         } catch (e) {
           console.warn('Error al disparar notificación de cancelación:', e);
         }
@@ -355,8 +367,15 @@ export const AppProvider = ({ children }) => {
       );
 
       try {
+        const compra = purchases.find(p => p.id === compraId);
+        const destinatarioId =
+          userRole === USER_ROLES.BUYER
+            ? (compra?.organizadorId || compra?.evento?.organizadorId)
+            : (compra?.compradorId || compra?.usuarioId);
+
         const rolDestino = userRole === USER_ROLES.BUYER ? 'Organizador' : 'Comprador';
         await apiService.crearNotificacion({
+          usuarioId: destinatarioId,
           rolDestino,
           tipo: 'NUEVO_MENSAJE_CHAT',
           titulo: `Nuevo mensaje de ${remitenteNombre}`,
