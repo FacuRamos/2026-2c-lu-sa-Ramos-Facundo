@@ -612,7 +612,7 @@
         </button>
         <button class="step-btn" onclick="goToStep(1)">
           <span class="step-num">Paso 2 · 00:45 - 01:30</span>
-          <span class="step-title">2. Filtros & Ordenamiento</span>
+          <span class="step-title">2. Catálogo & Filtros</span>
         </button>
         <button class="step-btn" onclick="goToStep(2)">
           <span class="step-num">Paso 3 · 01:30 - 02:20</span>
@@ -738,8 +738,8 @@ login = <span class="k">async</span> (req, res, next) => {
       <div class="panel" id="step-1">
         <div class="panel-header">
           <div>
-            <h2>Paso 2: Exploración, Filtrado y Ordenamiento Multi-criterio</h2>
-            <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Demuestra cálculo reactivo de promedios, filtros por categoría y ordenamiento flexible</p>
+            <h2>Paso 2: Exploración y Filtrado Dinámico de Eventos</h2>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Demuestra consumo reactivo con hooks, validación de query params y desacoplamiento con DTOs</p>
           </div>
           <span class="duration-tag">⏱ 00:45 - 01:30 (45s)</span>
         </div>
@@ -750,52 +750,92 @@ login = <span class="k">async</span> (req, res, next) => {
           <div class="layer-card">
             <div class="layer-head">
               <div class="layer-meta">
-                <span class="layer-badge badge-client">1. Custom Hook / Memo</span>
-                <span class="layer-name">useEventSearch.js</span>
+                <span class="layer-badge badge-client">1. Custom Hook / View</span>
+                <span class="layer-name">useEvents.js & HomeScreen.js</span>
               </div>
-              <span class="layer-file">packages/frontend/src/hooks/useEventSearch.js</span>
+              <span class="layer-file">packages/frontend/src/hooks/useEvents.js</span>
             </div>
-            <div class="layer-explanation">Pipeline de transformación funcional mediante <code>useMemo</code>: aplica búsqueda por texto, filtro de categoría y comparador dinámico.</div>
-            <div class="code-box"><span class="k">if</span> (sortOption === <span class="s">'precio_asc'</span>) {
-  result.<span class="f">sort</span>((a, b) => (a.precioMinimo ?? 0) - (b.precioMinimo ?? 0));
-} <span class="k">else if</span> (sortOption === <span class="s">'puntaje_organizador'</span>) {
-  result.<span class="f">sort</span>((a, b) => (b.puntajeOrganizador || 0) - (a.puntajeOrganizador || 0));
-}</div>
+            <div class="layer-explanation">Gestiona el estado reactivo de categorías y particiona los eventos en destacados y regulares mediante memorización.</div>
+            <div class="code-box"><span class="k">const</span> { filtered, featured, other } = <span class="f">useMemo</span>(() => {
+  <span class="c">// Particiona los eventos según el chip de categoría seleccionado ('all', 'cat-teatro', etc.)</span>
+  <span class="k">return</span> <span class="f">partitionEvents</span>(events, selectedCategory);
+}, [events, selectedCategory]);</div>
           </div>
 
-          <!-- Layer 2: Controller & Validation -->
+          <!-- Layer 2: HTTP Client -->
           <div class="layer-card">
             <div class="layer-head">
               <div class="layer-meta">
-                <span class="layer-badge badge-ctrl">2. Controller & Query Schema</span>
+                <span class="layer-badge badge-http">2. HTTP Client & Service</span>
+                <span class="layer-name">eventsService.js</span>
+              </div>
+              <span class="layer-file">packages/frontend/src/services/api/eventsService.js</span>
+            </div>
+            <div class="layer-explanation">Construye la URL con query params limpios y despacha la petición GET mediante el cliente HTTP desacoplado.</div>
+            <div class="code-box"><span class="k">async</span> <span class="f">getEventos</span>({ texto = <span class="s">''</span>, categoriaId = <span class="s">'all'</span> } = {}) {
+  <span class="k">const</span> query = {};
+  <span class="k">if</span> (texto.<span class="f">trim</span>()) query.q = texto.<span class="f">trim</span>();
+  <span class="k">if</span> (categoriaId !== <span class="s">'all'</span>) query.categoriaId = categoriaId;
+  <span class="k">return</span> <span class="k">await</span> webApiCaller.<span class="f">get</span>(<span class="s">'/eventos'</span>, { query });
+}</div>
+          </div>
+
+          <!-- Layer 3: Controller & Validation -->
+          <div class="layer-card">
+            <div class="layer-head">
+              <div class="layer-meta">
+                <span class="layer-badge badge-ctrl">3. Controller & Query Validation</span>
                 <span class="layer-name">EventoController.js (buscarEventosQuerySchema)</span>
               </div>
               <span class="layer-file">packages/backend/src/controllers/EventoController.js</span>
             </div>
-            <div class="layer-explanation">Valida los parámetros de consulta HTTP (categoría, ordenamiento por precio o puntaje) con Zod antes de invocar la búsqueda.</div>
+            <div class="layer-explanation">Valida los parámetros de consulta HTTP (búsqueda textual y categoría) con Zod declarativo antes de consultar el servicio.</div>
             <div class="code-box"><span class="k">const</span> buscarEventosQuerySchema = z.<span class="f">object</span>({
   busqueda: z.<span class="f">string</span>().<span class="f">trim</span>().<span class="f">optional</span>(),
   categoriaId: z.<span class="f">string</span>().<span class="f">trim</span>().<span class="f">optional</span>(),
-  ordenarPor: z.<span class="f">enum</span>([<span class="s">'precio'</span>, <span class="s">'fecha'</span>, <span class="s">'puntajeOrganizador'</span>]).<span class="f">optional</span>(),
-  direccion: z.<span class="f">enum</span>([<span class="s">'asc'</span>, <span class="s">'desc'</span>]).<span class="f">default</span>(<span class="s">'asc'</span>)
+  precioMin: z.coerce.<span class="f">number</span>().<span class="f">min</span>(0).<span class="f">optional</span>()
 });</div>
           </div>
 
-          <!-- Layer 3: Service Layer -->
+          <!-- Layer 4: Application Service -->
           <div class="layer-card">
             <div class="layer-head">
               <div class="layer-meta">
-                <span class="layer-badge badge-svc">3. Service Layer</span>
-                <span class="layer-name">EventoService.js (Puntaje de Productora)</span>
+                <span class="layer-badge badge-svc">4. Service Layer</span>
+                <span class="layer-name">EventoService.js (buscarEventos)</span>
               </div>
               <span class="layer-file">packages/backend/src/services/EventoService.js</span>
             </div>
-            <div class="layer-explanation">Agrega las reseñas del repositorio y calcula la media aritmética de reputación para inyectarla en el DTO de salida.</div>
-            <div class="code-box"><span class="k">const</span> resenias = <span class="k">await</span> <span class="k">this</span>.reseniaRepo.<span class="f">findByOrganizador</span>(organizadorId);
-<span class="k">const</span> promedio = resenias.length > 0
-  ? resenias.<span class="f">reduce</span>((acc, r) => acc + r.puntuacion, 0) / resenias.length
-  : 0;
-<span class="k">return</span> <span class="f">mapEventoSummaryDto</span>({ ...evento, organizadorPuntaje: promedio });</div>
+            <div class="layer-explanation">Recupera la colección del repositorio y ejecuta el filtrado por categoría y término de búsqueda.</div>
+            <div class="code-box"><span class="k">async</span> <span class="f">buscarEventos</span>(queryParams = {}) {
+  <span class="k">const</span> todos = <span class="k">await</span> <span class="k">this</span>.eventoRepo.<span class="f">getAll</span>();
+  <span class="k">const</span> filtrados = <span class="f">filtrarEventos</span>(todos, {
+    busqueda: queryParams.busqueda,
+    categoriaId: queryParams.categoriaId
+  });
+  <span class="k">return</span> filtrados.<span class="f">map</span>(mapEventoSummaryDto);
+}</div>
+          </div>
+
+          <!-- Layer 5: DTO Serialization -->
+          <div class="layer-card">
+            <div class="layer-head">
+              <div class="layer-meta">
+                <span class="layer-badge badge-dto">5. DTO Mapper</span>
+                <span class="layer-name">mappers.js (mapEventoSummaryDto)</span>
+              </div>
+              <span class="layer-file">packages/backend/src/services/mappers.js</span>
+            </div>
+            <div class="layer-explanation">Mapea la entidad de dominio a un DTO resumen liviano que expone únicamente los atributos requeridos por la grilla.</div>
+            <div class="code-box"><span class="k">export function</span> <span class="f">mapEventoSummaryDto</span>(evento) {
+  <span class="k">return</span> {
+    id: evento.id,
+    nombre: evento.nombre,
+    fecha: evento.fecha.<span class="f">toISOString</span>(),
+    precioMinimo: <span class="f">calcularPrecioMinimo</span>(evento.tiposEntrada),
+    imagen: evento.multimedia?.[0] || <span class="k">null</span>
+  };
+}</div>
           </div>
         </div>
       </div>
@@ -1177,11 +1217,11 @@ tipoEntrada.<span class="f">descontarCupo</span>(data.cantidad); <span class="c"
         <!-- Script 2 -->
         <div class="script-section">
           <div class="script-time">00:45 - 01:30 · Exploración y Filtros</div>
-          <div class="script-h3">2. Búsqueda Reactiva y Ordenamiento Multi-criterio</div>
+          <div class="script-h3">2. Búsqueda Reactiva y Filtrado por Categorías</div>
           <span class="cue-pill">ACCIONES EN PANTALLA</span>
-          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">Abrir barra de búsqueda, escribir 'Rock', borrar, seleccionar chip 'Teatro', cambiar chips de orden por 'Precio: menor a mayor' y 'Mejor puntuación organizador', entrar a Quilmes Rock 2026.</p>
+          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">Recorrer el catálogo de eventos en la pantalla principal, seleccionar el chip de categoría 'Teatro', luego volver a 'Todos' y seleccionar el evento 'Quilmes Rock 2026'.</p>
           <div class="speech-bubble" id="text-script-2">
-            "En la experiencia de compra, el usuario cuenta con búsqueda reactiva y filtrado declarativo por categorías. Para optimizar la toma de decisiones, implementamos un sistema de ordenamiento multi-criterio que permite priorizar espectáculos por precio mínimo, fecha más próxima y reputación histórica del organizador. Al ingresar al evento Quilmes Rock, el comprador puede auditar las reseñas de espectáculos anteriores de la productora PopArt Music, las cuales computan el promedio en tiempo real."
+            "En la experiencia de exploración, el usuario cuenta con búsqueda reactiva y filtrado dinámico por categorías. La pantalla principal consume el catálogo a través del hook useEvents, particionando los espectáculos destacados y aplicando los filtros seleccionados. Al consultar los eventos, la petición viaja hacia el EventoController, donde los parámetros se validan declarativamente con esquemas Zod antes de alcanzar la capa de servicios, la cual retorna resúmenes livianos mediante el patrón DTO."
           </div>
         </div>
 
