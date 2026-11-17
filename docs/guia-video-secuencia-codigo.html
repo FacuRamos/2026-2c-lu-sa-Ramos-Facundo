@@ -638,29 +638,6 @@
           <span class="duration-tag">⏱ 00:00 - 00:45 (45s)</span>
         </div>
 
-        <div class="action-grid">
-          <div class="action-box">
-            <div class="box-title action-title">📱 Qué mostrar en pantalla (Grabación App)</div>
-            <div class="box-content">
-              <ul>
-                <li>Abrir la app en la pantalla de bienvenida/login.</li>
-                <li>Hacer clic en el selector de roles (mostrar que cambia dinámicamente entre <strong>Comprador</strong> y <strong>Organizador</strong>).</li>
-                <li>Ingresar: <code>juan.perez@example.com</code> / <code>password123</code>.</li>
-                <li>Presionar <strong>"Iniciar Sesión"</strong> y mostrar la transición inmediata a la Home del comprador con saludo personalizado.</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="action-box narration">
-            <div class="box-title narr-title">🎙️ Qué decir (Voz en off)</div>
-            <div class="box-content">
-              <div class="quote-box">
-                "Iniciamos con el módulo de autenticación y control de acceso. Aplicamos el estándar de la cátedra: almacenamiento seguro con hashing adaptativo unidireccional y salt mediante BCrypt, y emisión de tokens criptográficos JWT sin estado firmados en el backend. Toda petición subsecuente viaja con la cabecera Authorization Bearer inyectando el rol y claims verificados."
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="pipeline-title">⚡ Traza Granular de Capas de Código</div>
         <div class="granular-layers">
           <!-- Layer 1 -->
@@ -767,30 +744,6 @@ login = <span class="k">async</span> (req, res, next) => {
           <span class="duration-tag">⏱ 00:45 - 01:30 (45s)</span>
         </div>
 
-        <div class="action-grid">
-          <div class="action-box">
-            <div class="box-title action-title">📱 Qué mostrar en pantalla (Grabación App)</div>
-            <div class="box-content">
-              <ul>
-                <li>Hacer clic en el buscador o en el botón <strong>"Filtrar"</strong> de la Home.</li>
-                <li>Escribir <code>Rock</code>: verificar cómo la grilla se filtra en tiempo real.</li>
-                <li>Limpiar el input y seleccionar el chip de categoría <strong>"Teatro"</strong> (muestra *Hamlet*).</li>
-                <li>Tocar los chips de orden: <strong>"Precio: menor a mayor"</strong> y luego <strong>"Mejor puntuación organizador"</strong>.</li>
-                <li>Hacer clic en <strong>Quilmes Rock 2026</strong> para entrar a su detalle.</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="action-box narration">
-            <div class="box-title narr-title">🎙️ Qué decir (Voz en off)</div>
-            <div class="box-content">
-              <div class="quote-box">
-                "En el catálogo de eventos, el comprador cuenta con búsqueda reactiva y filtros por categoría. Implementamos un sistema de ordenamiento multi-criterio que permite priorizar eventos por precio ascendente, descendente, fecha próxima y calificación histórica del organizador, la cual se calcula dinámicamente a partir de las reseñas completadas."
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="pipeline-title">⚡ Traza Granular de Capas de Código</div>
         <div class="granular-layers">
           <div class="layer-card">
@@ -835,29 +788,6 @@ login = <span class="k">async</span> (req, res, next) => {
             <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Demuestra invariantes del modelo rico, prevención de sobreventa y consistencia transaccional</p>
           </div>
           <span class="duration-tag">⏱ 01:30 - 02:20 (50s)</span>
-        </div>
-
-        <div class="action-grid">
-          <div class="action-box">
-            <div class="box-title action-title">📱 Qué mostrar en pantalla (Grabación App)</div>
-            <div class="box-content">
-              <ul>
-                <li>En el detalle de <strong>Quilmes Rock 2026</strong>, pulsar <strong>"Comprar entradas"</strong>.</li>
-                <li>Seleccionar con los contadores: <strong>2x Campo General</strong> ($30.000) y <strong>1x Acceso VIP</strong> ($35.000).</li>
-                <li>Mostrar el desglose del total acumulado: <code>$65.000</code>.</li>
-                <li>Pulsar <strong>"Continuar con la compra"</strong> y observar la confirmación instantánea.</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="action-box narration">
-            <div class="box-title narr-title">🎙️ Qué decir (Voz en off)</div>
-            <div class="box-content">
-              <div class="quote-box">
-                "Para la compra, soportamos la adquisición de múltiples categorías de entrada en una única operación. En el backend, el CompraService valida las precondiciones con la entidad de dominio Evento, la cual descuenta atómicamente los cupos disponibles de cada sector mediante métodos de negocio protegidos, garantizando la consistencia y evitando sobreventas."
-              </div>
-            </div>
-          </div>
         </div>
 
         <div class="pipeline-title">⚡ Traza Granular de Capas de Código</div>
@@ -947,29 +877,6 @@ tipoEntrada.<span class="f">descontarCupo</span>(data.cantidad); <span class="c"
           <span class="duration-tag">⏱ 02:20 - 03:00 (40s)</span>
         </div>
 
-        <div class="action-grid">
-          <div class="action-box">
-            <div class="box-title action-title">📱 Qué mostrar en pantalla (Grabación App)</div>
-            <div class="box-content">
-              <ul>
-                <li>Mostrar el <strong>Detalle de Compra</strong> tras completar el checkout.</li>
-                <li>Apuntar al desglose de costo: <code>Campo General · Precio: $15.000 c/u · 2 entradas</code>.</li>
-                <li>Hacer scroll hacia las tarjetas de <strong>"Tus entradas (2)"</strong> con sus códigos: <code>ACCESO: 920C9095-01</code> y <code>-02</code>.</li>
-                <li>Tocar en la sección <strong>"Otras entradas tuyas para este evento"</strong> para conmutar directamente al pase VIP Front.</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="action-box narration">
-            <div class="box-title narr-title">🎙️ Qué decir (Voz en off)</div>
-            <div class="box-content">
-              <div class="quote-box">
-                "En la vista de detalle de compra, el usuario dispone del desglose unitario y de sus pases individuales con código de acceso único generado de forma determinística para la validación en molinete. Si realizó compras combinadas, el sistema provee enlaces cruzados para alternar entre todas sus entradas sin regresar al menú."
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="pipeline-title">⚡ Traza Granular de Capas de Código</div>
         <div class="granular-layers">
           <div class="layer-card">
@@ -1017,31 +924,6 @@ tipoEntrada.<span class="f">descontarCupo</span>(data.cantidad); <span class="c"
             <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Demuestra mensajería contextual con WebSockets, aislamiento de notificaciones y panel comercial en tiempo real</p>
           </div>
           <span class="duration-tag">⏱ 03:00 - 03:50 (50s)</span>
-        </div>
-
-        <div class="action-grid">
-          <div class="action-box">
-            <div class="box-title action-title">📱 Qué mostrar en pantalla (Grabación App)</div>
-            <div class="box-content">
-              <ul>
-                <li>Desde el detalle de compra, pulsar <strong>"Escribir al organizador"</strong>.</li>
-                <li>Enviar: <em>"¿A qué hora abren las puertas para Campo General?"</em>.</li>
-                <li>Cerrar sesión de comprador e iniciar como Organizador (<code>contacto@popart.com</code>).</li>
-                <li>Mostrar el <strong>Dashboard</strong> con métricas actualizadas (ventas e ingresos totales).</li>
-                <li>Entrar a <strong>Mensajes</strong> (Chat organizador): mostrar la conversación con Juan Pérez limpia (sin <code>undefined</code>).</li>
-                <li>Abrir el chat y contestar: <em>"Hola Juan, las puertas abren a las 17 hs."</em>.</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="action-box narration">
-            <div class="box-title narr-title">🎙️ Qué decir (Voz en off)</div>
-            <div class="box-content">
-              <div class="quote-box">
-                "Por último, verificamos la comunicación bidireccional. Para el soporte en vivo optamos por una arquitectura de WebSockets con particionamiento por salas de compra. A diferencia del HTTP Polling tradicional —que satura la red enviando cientos de bytes en cabeceras vacías y drena la batería móvil al impedir el reposo del módem de radio—, WebSocket mantiene un canal TCP full-duplex persistente tras el handshake RFC 6455 con un frame overhead de apenas 2 bytes. Al ingresar con la productora responsable, constatamos que el panel de control refleja las métricas en tiempo real y la bandeja recibe la consulta de inmediato con notificaciones estrictamente aisladas."
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- CALLOUT ARQUITECTURA: WEBSOCKETS VS HTTP POLLING -->
