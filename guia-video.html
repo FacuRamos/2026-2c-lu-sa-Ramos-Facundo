@@ -616,7 +616,7 @@
         </button>
         <button class="step-btn" onclick="goToStep(2)">
           <span class="step-num">Paso 3 · 01:30 - 02:20</span>
-          <span class="step-title">3. Compra Multi-tipo & Cupos</span>
+          <span class="step-title">3. Compra de Entrada & Cupos</span>
         </button>
         <button class="step-btn" onclick="goToStep(3)">
           <span class="step-num">Paso 4 · 02:20 - 03:00</span>
@@ -784,8 +784,8 @@ login = <span class="k">async</span> (req, res, next) => {
       <div class="panel" id="step-2">
         <div class="panel-header">
           <div>
-            <h2>Paso 3: Transacción de Compra Multi-tipo y Cupo Atómico</h2>
-            <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Demuestra invariantes del modelo rico, prevención de sobreventa y consistencia transaccional</p>
+            <h2>Paso 3: Transacción de Compra y Descuento Atómico de Cupo</h2>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Demuestra invariantes del modelo de dominio rico, prevención de sobreventa y consistencia transaccional</p>
           </div>
           <span class="duration-tag">⏱ 01:30 - 02:20 (50s)</span>
         </div>
@@ -795,19 +795,22 @@ login = <span class="k">async</span> (req, res, next) => {
           <div class="layer-card">
             <div class="layer-head">
               <div class="layer-meta">
-                <span class="layer-badge badge-client">1. Client Multi-Cart Loop</span>
+                <span class="layer-badge badge-client">1. Client / Checkout</span>
                 <span class="layer-name">TicketSelectionScreen.js</span>
               </div>
               <span class="layer-file">packages/frontend/src/screens/buyer/TicketSelectionScreen.js</span>
             </div>
-            <div class="layer-explanation">Itera por cada tipo de entrada seleccionado y efectúa las creaciones de compra, garantizando que cada entrada conserve su tipo y precio.</div>
-            <div class="code-box"><span class="k">const</span> createdPurchases = [];
-<span class="k">for</span> (<span class="k">const</span> item <span class="k">of</span> selectedItems) {
+            <div class="layer-explanation">Captura la selección de la entrada (1x Campo General por $15.000) y despacha la orden hacia el contexto de compra.</div>
+            <div class="code-box"><span class="k">const</span> handleBuy = <span class="k">async</span> () => {
+  <span class="c">// Despacha la compra para la categoría seleccionada (Campo General, cant: 1)</span>
   <span class="k">const</span> nuevaCompra = <span class="k">await</span> <span class="f">createPurchase</span>({
     eventoId: event.id,
-    tipoEntradaId: item.tipo.id,
-    cantidad: item.qty,
+    tipoEntradaId: selectedTipo.id,
+    cantidad: 1,
   });
+  navigation.<span class="f">replace</span>(<span class="s">'PurchaseSuccess'</span>, { purchaseId: nuevaCompra.id });
+};</div>
+          </div>
   createdPurchases.<span class="f">push</span>(nuevaCompra);
 }</div>
           </div>
@@ -1215,11 +1218,11 @@ enviarMensaje = <span class="k">async</span> (req, res, next) => {
         <!-- Script 3 -->
         <div class="script-section">
           <div class="script-time">01:30 - 02:20 · Checkout & Dominio</div>
-          <div class="script-h3">3. Compra Multi-tipo y Gestión Atómica de Cupos</div>
+          <div class="script-h3">3. Compra de Entrada y Gestión Atómica de Cupos</div>
           <span class="cue-pill">ACCIONES EN PANTALLA</span>
-          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">Pulsar 'Comprar entradas', sumar 2x Campo General y 1x Acceso VIP con el selector '+', mostrar el total sumado de $65.000 y pulsar 'Continuar con la compra'.</p>
+          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">Pulsar 'Comprar entradas', seleccionar 1x Campo General ($15.000) con el selector '+', verificar el total de $15.000 y pulsar 'Continuar con la compra'.</p>
           <div class="speech-bubble" id="text-script-3">
-            "Para la compra de entradas, el sistema soporta la adquisición simultánea de múltiples categorías en un solo carrito transaccional. En la capa de servicios, el CompraService valida las precondiciones de negocio a través de esquemas declarativos Zod y delega la mutación al modelo de dominio rico. La entidad Evento descuenta el inventario de forma atómica respetando las invariantes de negocio para impedir condiciones de sobreventa o cupos negativos."
+            "En el flujo de checkout, el comprador selecciona la entrada deseada para el espectáculo, en este caso un pase de Campo General por 15.000 pesos. En la capa de servicios, el CompraService valida las precondiciones de negocio a través de esquemas declarativos Zod y delega la mutación al modelo de dominio rico. La entidad TipoEntrada descuenta el inventario de forma atómica respetando las invariantes de negocio para impedir condiciones de sobreventa o cupos negativos."
           </div>
         </div>
 
@@ -1228,9 +1231,9 @@ enviarMensaje = <span class="k">async</span> (req, res, next) => {
           <div class="script-time">02:20 - 03:00 · Credenciales & Pases</div>
           <div class="script-h3">4. Pases Individuales y Códigos Únicos</div>
           <span class="cue-pill">ACCIONES EN PANTALLA</span>
-          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">Mostrar el Detalle de compra, el desglose con precio unitario, los pases individuales con código 'ACCESO: ...-01', y tocar en 'Otras entradas tuyas para este evento' para saltar a la otra entrada.</p>
+          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">Mostrar el Detalle de compra, el desglose con precio unitario de $15.000, y el pase individual con código unívoco determinístico 'ACCESO: ...-01'.</p>
           <div class="speech-bubble" id="text-script-4">
-            "Una vez confirmada la compra, el cliente accede al detalle de su pedido con el precio unitario formalmente desglosado. Cada ticket adquirido genera un pase de acceso individual con código unívoco determinístico, listo para el control de admisión en puerta. Adicionalmente, una barra de accesos contextuales le permite saltar entre las distintas categorías adquiridas para el mismo espectáculo."
+            "Una vez confirmada la compra, el cliente accede al detalle de su pedido con el precio unitario formalmente desglosado. Cada ticket adquirido genera un pase de acceso individual con código unívoco determinístico, listo para el control de admisión en puerta. Asimismo, la arquitectura contempla la navegación contextual entre entradas si el usuario cuenta con pases previos."
           </div>
         </div>
 
