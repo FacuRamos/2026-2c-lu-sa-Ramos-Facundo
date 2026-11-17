@@ -746,6 +746,7 @@ login = <span class="k">async</span> (req, res, next) => {
 
         <div class="pipeline-title">⚡ Traza Granular de Capas de Código</div>
         <div class="granular-layers">
+          <!-- Layer 1: Client Hook -->
           <div class="layer-card">
             <div class="layer-head">
               <div class="layer-meta">
@@ -762,10 +763,29 @@ login = <span class="k">async</span> (req, res, next) => {
 }</div>
           </div>
 
+          <!-- Layer 2: Controller & Validation -->
           <div class="layer-card">
             <div class="layer-head">
               <div class="layer-meta">
-                <span class="layer-badge badge-svc">2. Service Layer</span>
+                <span class="layer-badge badge-ctrl">2. Controller & Query Schema</span>
+                <span class="layer-name">EventoController.js (buscarEventosQuerySchema)</span>
+              </div>
+              <span class="layer-file">packages/backend/src/controllers/EventoController.js</span>
+            </div>
+            <div class="layer-explanation">Valida los parámetros de consulta HTTP (categoría, ordenamiento por precio o puntaje) con Zod antes de invocar la búsqueda.</div>
+            <div class="code-box"><span class="k">const</span> buscarEventosQuerySchema = z.<span class="f">object</span>({
+  busqueda: z.<span class="f">string</span>().<span class="f">trim</span>().<span class="f">optional</span>(),
+  categoriaId: z.<span class="f">string</span>().<span class="f">trim</span>().<span class="f">optional</span>(),
+  ordenarPor: z.<span class="f">enum</span>([<span class="s">'precio'</span>, <span class="s">'fecha'</span>, <span class="s">'puntajeOrganizador'</span>]).<span class="f">optional</span>(),
+  direccion: z.<span class="f">enum</span>([<span class="s">'asc'</span>, <span class="s">'desc'</span>]).<span class="f">default</span>(<span class="s">'asc'</span>)
+});</div>
+          </div>
+
+          <!-- Layer 3: Service Layer -->
+          <div class="layer-card">
+            <div class="layer-head">
+              <div class="layer-meta">
+                <span class="layer-badge badge-svc">3. Service Layer</span>
                 <span class="layer-name">EventoService.js (Puntaje de Productora)</span>
               </div>
               <span class="layer-file">packages/backend/src/services/EventoService.js</span>
@@ -1035,59 +1055,32 @@ tipoEntrada.<span class="f">descontarCupo</span>(data.cantidad); <span class="c"
 }, [inputText, purchase, sendMessage]);</div>
           </div>
 
-          <!-- Layer 2 -->
+          <!-- Layer 2: WebSocket Transport Gateway -->
           <div class="layer-card">
             <div class="layer-head">
               <div class="layer-meta">
-                <span class="layer-badge badge-ctrl">2. Controller & Validation</span>
-                <span class="layer-name">CompraController.js (enviarMensaje)</span>
+                <span class="layer-badge badge-ws">2. WebSocket Transport Gateway</span>
+                <span class="layer-name">socketGateway.js (Room Partitioning RFC 6455)</span>
               </div>
-              <span class="layer-file">packages/backend/src/controllers/CompraController.js</span>
+              <span class="layer-file">packages/backend/src/infrastructure/socketGateway.js</span>
             </div>
-            <div class="layer-explanation">Aplica esquema Zod estricto sobre el texto del mensaje y extrae la identidad del usuario desde el JWT autenticado.</div>
-            <div class="code-box"><span class="k">const</span> enviarMensajeSchema = z.<span class="f">object</span>({
-  mensaje: z.<span class="f">string</span>().<span class="f">trim</span>().<span class="f">min</span>(1, <span class="s">'El mensaje no puede estar vacío'</span>)
-});
-
-enviarMensaje = <span class="k">async</span> (req, res, next) => {
-  <span class="k">const</span> data = <span class="f">validate</span>(enviarMensajeSchema, req.body);
-  <span class="k">const</span> mensaje = <span class="k">await</span> <span class="k">this</span>.service.<span class="f">enviarMensaje</span>(req.params.id, {
-    usuarioId: req.user.id,
-    mensaje: data.mensaje
+            <div class="layer-explanation">Aísla los sockets por sala temática (room) asegurando que solo los participantes autorizados reciban los eventos push en tiempo real.</div>
+            <div class="code-box">io.<span class="f">on</span>(<span class="s">'connection'</span>, (socket) => {
+  <span class="c">// Autenticación vía JWT claim en handshake RFC 6455</span>
+  <span class="k">const</span> userId = socket.user.sub;
+  
+  socket.<span class="f">on</span>(<span class="s">'join_compra'</span>, ({ compraId }) => {
+    <span class="c">// Suscribe al socket únicamente a la sala de esta compra específica</span>
+    socket.<span class="f">join</span>(<span class="s">`room:compra:${compraId}`</span>);
   });
-  res.<span class="f">status</span>(201).<span class="f">json</span>(mensaje);
-};</div>
+});</div>
           </div>
 
-          <!-- Layer 3 -->
+          <!-- Layer 3: Domain Entity & Security Invariant -->
           <div class="layer-card">
             <div class="layer-head">
               <div class="layer-meta">
-                <span class="layer-badge badge-svc">3. Service & Event Dispatcher</span>
-                <span class="layer-name">CompraService.js</span>
-              </div>
-              <span class="layer-file">packages/backend/src/services/CompraService.js</span>
-            </div>
-            <div class="layer-explanation">Carga el agregado de compra, delega la mutación a la entidad y despacha el evento al Gateway en tiempo real.</div>
-            <div class="code-box"><span class="k">async</span> <span class="f">enviarMensaje</span>(compraId, data = {}) {
-  <span class="k">const</span> compra = <span class="k">await</span> <span class="k">this</span>.compraRepo.<span class="f">getById</span>(compraId);
-  <span class="k">const</span> usuario = <span class="k">await</span> <span class="k">this</span>.usuarioRepo.<span class="f">getById</span>(data.usuarioId);
-
-  <span class="c">// Invoca método de dominio rico que protege las invariantes</span>
-  <span class="k">const</span> nuevoMensaje = compra.<span class="f">agregarMensaje</span>(usuario, data.mensaje);
-  <span class="k">await</span> <span class="k">this</span>.compraRepo.<span class="f">save</span>(compra);
-
-  <span class="c">// Despacha evento en tiempo real hacia la sala WebSocket de la compra</span>
-  wsGateway.<span class="f">emitToRoom</span>(<span class="s">`room:compra:${compraId}`</span>, <span class="s">'nuevo_mensaje'</span>, <span class="f">mapMensajeDto</span>(nuevoMensaje));
-  <span class="k">return</span> <span class="f">mapMensajeDto</span>(nuevoMensaje);
-}</div>
-          </div>
-
-          <!-- Layer 4 -->
-          <div class="layer-card">
-            <div class="layer-head">
-              <div class="layer-meta">
-                <span class="layer-badge badge-dom">4. Domain Entity & Invariants</span>
+                <span class="layer-badge badge-dom">3. Domain Entity & Invariants</span>
                 <span class="layer-name">compra.js (agregarMensaje)</span>
               </div>
               <span class="layer-file">packages/backend/src/domain/entities/compra.js</span>
@@ -1108,38 +1101,18 @@ enviarMensaje = <span class="k">async</span> (req, res, next) => {
 }</div>
           </div>
 
-          <!-- Layer 5 -->
+          <!-- Layer 4: Dashboard & Inbox Preview -->
           <div class="layer-card">
             <div class="layer-head">
               <div class="layer-meta">
-                <span class="layer-badge badge-ws">5. WebSocket Transport Gateway</span>
-                <span class="layer-name">socketGateway.js (Room Partitioning RFC 6455)</span>
-              </div>
-              <span class="layer-file">packages/backend/src/infrastructure/socketGateway.js</span>
-            </div>
-            <div class="layer-explanation">Aísla los sockets por sala temática (room) asegurando que solo los participantes autorizados reciban los eventos push.</div>
-            <div class="code-box">io.<span class="f">on</span>(<span class="s">'connection'</span>, (socket) => {
-  <span class="c">// Autenticación vía JWT claim en handshake RFC 6455</span>
-  <span class="k">const</span> userId = socket.user.sub;
-  
-  socket.<span class="f">on</span>(<span class="s">'join_compra'</span>, ({ compraId }) => {
-    <span class="c">// Suscribe al socket únicamente a la sala de esta compra específica</span>
-    socket.<span class="f">join</span>(<span class="s">`room:compra:${compraId}`</span>);
-  });
-});</div>
-          </div>
-
-          <!-- Layer 6 -->
-          <div class="layer-card">
-            <div class="layer-head">
-              <div class="layer-meta">
-                <span class="layer-badge badge-svc">6. Inbox Preview & Data Normalization</span>
+                <span class="layer-badge badge-svc">4. Organizer Dashboard & Inbox Preview</span>
                 <span class="layer-name">EventoService.js & OrganizerInboxScreen.js</span>
               </div>
               <span class="layer-file">packages/backend/src/services/EventoService.js</span>
             </div>
-            <div class="layer-explanation">Garantiza el preview limpio en la bandeja del organizador evitando errores de renderizado de texto indefinido.</div>
-            <div class="code-box"><span class="k">const</span> esComprador = uId === compradorId;
+            <div class="layer-explanation">Computa ventas totales del Dashboard y normaliza el remitente en la bandeja para un renderizado limpio sin textos indefinidos.</div>
+            <div class="code-box"><span class="c">// EventoService: Métricas de Dashboard y preview fiel de mensajes</span>
+<span class="k">const</span> esComprador = uId === compradorId;
 <span class="k">return</span> {
   id: m.id,
   remitenteId: uId,
@@ -1149,11 +1122,11 @@ enviarMensaje = <span class="k">async</span> (req, res, next) => {
 };</div>
           </div>
 
-          <!-- Layer 7 -->
+          <!-- Layer 5: Notification Isolation -->
           <div class="layer-card">
             <div class="layer-head">
               <div class="layer-meta">
-                <span class="layer-badge badge-ctrl">7. Isolated Notification Dispatch</span>
+                <span class="layer-badge badge-ctrl">5. Isolated Notification Dispatch</span>
                 <span class="layer-name">AppContext.js</span>
               </div>
               <span class="layer-file">packages/frontend/src/context/AppContext.js</span>
