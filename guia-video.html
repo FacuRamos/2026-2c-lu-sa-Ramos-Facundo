@@ -619,12 +619,8 @@
           <span class="step-title">3. Compra de Entrada & Cupos</span>
         </button>
         <button class="step-btn" onclick="goToStep(3)">
-          <span class="step-num">Paso 4 · 02:20 - 03:00</span>
-          <span class="step-title">4. Pases & Códigos de Acceso</span>
-        </button>
-        <button class="step-btn" onclick="goToStep(4)">
-          <span class="step-num">Paso 5 · 03:00 - 03:50</span>
-          <span class="step-title">5. Chat Bidireccional & Inbox</span>
+          <span class="step-num">Paso 4 · 02:20 - 03:20</span>
+          <span class="step-title">4. Chat Bidireccional & Inbox</span>
         </button>
       </div>
 
@@ -931,59 +927,10 @@ tipoEntrada.<span class="f">descontarCupo</span>(data.cantidad); <span class="c"
       <div class="panel" id="step-3">
         <div class="panel-header">
           <div>
-            <h2>Paso 4: Detalle de Compra, Pases Individuales y Códigos Únicos</h2>
-            <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Demuestra desglose contable, códigos de acceso determinísticos y navegación cruzada</p>
-          </div>
-          <span class="duration-tag">⏱ 02:20 - 03:00 (40s)</span>
-        </div>
-
-        <div class="pipeline-title">⚡ Traza Granular de Capas de Código</div>
-        <div class="granular-layers">
-          <div class="layer-card">
-            <div class="layer-head">
-              <div class="layer-meta">
-                <span class="layer-badge badge-client">1. Cross-link Filter</span>
-                <span class="layer-name">PurchaseDetailScreen.js</span>
-              </div>
-              <span class="layer-file">packages/frontend/src/screens/buyer/PurchaseDetailScreen.js</span>
-            </div>
-            <div class="layer-explanation">Filtra las demás compras del mismo evento para ofrecer navegación contextual inmediata entre entradas.</div>
-            <div class="code-box"><span class="k">const</span> otherPurchasesForSameEvent = (purchases || []).<span class="f">filter</span>(
-  (p) => p.eventoId === purchase?.eventoId && p.id !== purchase?.id
-);</div>
-          </div>
-
-          <div class="layer-card">
-            <div class="layer-head">
-              <div class="layer-meta">
-                <span class="layer-badge badge-dto">2. DTO Serialization</span>
-                <span class="layer-name">mappers.js (mapCompraDto)</span>
-              </div>
-              <span class="layer-file">packages/backend/src/services/mappers.js</span>
-            </div>
-            <div class="layer-explanation">Desacopla la entidad Compra de la API HTTP, calculando días restantes y formateando precios monetarios.</div>
-            <div class="code-box"><span class="k">export function</span> <span class="f">mapCompraDto</span>(c) {
-  <span class="k">return</span> {
-    id: c.id,
-    eventoTitulo: c.evento.nombre,
-    precioUnitario: c.tipoEntrada.precio,
-    cantidad: c.cantidad,
-    total: c.total,
-    diasRestantes: <span class="f">calcularDiasRestantes</span>(c.evento.fecha)
-  };
-}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- STEP 5 PANEL -->
-      <div class="panel" id="step-4">
-        <div class="panel-header">
-          <div>
-            <h2>Paso 5: Chat Bidireccional en Vivo y Dashboard Organizador</h2>
+            <h2>Paso 4: Chat Bidireccional en Vivo y Dashboard Organizador</h2>
             <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Demuestra mensajería contextual con WebSockets, aislamiento de notificaciones y panel comercial en tiempo real</p>
           </div>
-          <span class="duration-tag">⏱ 03:00 - 03:50 (50s)</span>
+          <span class="duration-tag">⏱ 02:20 - 03:20 (60s)</span>
         </div>
 
         <!-- CALLOUT ARQUITECTURA: WEBSOCKETS VS HTTP POLLING -->
@@ -1238,33 +1185,22 @@ tipoEntrada.<span class="f">descontarCupo</span>(data.cantidad); <span class="c"
 
         <!-- Script 4 -->
         <div class="script-section">
-          <div class="script-time">02:20 - 03:00 · Credenciales & Pases</div>
-          <div class="script-h3">4. Pases Individuales y Códigos Únicos</div>
+          <div class="script-time">02:20 - 03:20 · Soporte & Productora</div>
+          <div class="script-h3">4. Chat en Vivo con WebSockets y Panel de Control del Organizador</div>
           <span class="cue-pill">ACCIONES EN PANTALLA</span>
-          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">Mostrar el Detalle de compra, el desglose con precio unitario de $15.000, y el pase individual con código unívoco determinístico 'ACCESO: ...-01'.</p>
+          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">Desde el detalle de compra, tocar 'Escribir al organizador', mandar mensaje, cerrar sesión, ingresar como Organizador (contacto@popart.com), mostrar dashboard con métricas actualizadas, entrar a mensajes y responder.</p>
           <div class="speech-bubble" id="text-script-4">
-            "Una vez confirmada la compra, el cliente accede al detalle de su pedido con el precio unitario formalmente desglosado. Cada ticket adquirido genera un pase de acceso individual con código unívoco determinístico, listo para el control de admisión en puerta. Asimismo, la arquitectura contempla la navegación contextual entre entradas si el usuario cuenta con pases previos."
-          </div>
-        </div>
-
-        <!-- Script 5 -->
-        <div class="script-section">
-          <div class="script-time">03:00 - 03:50 · Soporte & Productora</div>
-          <div class="script-h3">5. Chat en Vivo con WebSockets y Panel de Control del Organizador</div>
-          <span class="cue-pill">ACCIONES EN PANTALLA</span>
-          <p style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">Tocar 'Escribir al organizador', mandar mensaje, cerrar sesión, ingresar como Organizador (contacto@popart.com), mostrar dashboard con métricas actualizadas, entrar a mensajes y responder.</p>
-          <div class="speech-bubble" id="text-script-5">
             "Para el canal de soporte post-venta implementamos comunicación bidireccional basada en WebSockets con particionamiento por salas de compra. A diferencia del HTTP Polling tradicional —que satura el ancho de banda enviando casi un kilobyte en cabeceras por cada sondeo y drena la batería del celular al impedir que el módem de radio entre en reposo—, WebSocket establece un canal TCP persistente full-duplex bajo el protocolo RFC 6455 con un frame overhead de apenas 2 bytes. El agregado de dominio Compra valida que únicamente el titular y el productor asignado puedan escribir. Al ingresar con la productora responsable, constatamos que el Dashboard refleja las métricas comerciales actualizadas y la bandeja de mensajes recibe la consulta de forma inmediata con latencia inferior a 50 milisegundos y notificaciones estrictamente aisladas."
           </div>
         </div>
 
-        <!-- Script 6: Cierre -->
+        <!-- Script 5: Cierre -->
         <div class="script-section">
-          <div class="script-time">03:50 - 04:10 · Cierre & Verificación</div>
-          <div class="script-h3">6. Conclusión y Suite de Pruebas Automatizadas</div>
+          <div class="script-time">03:20 - 03:40 · Cierre & Verificación</div>
+          <div class="script-h3">5. Conclusión y Suite de Pruebas Automatizadas</div>
           <span class="cue-pill">ACCIONES EN PANTALLA</span>
           <p style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">Mostrar la terminal de comandos ejecutando 'npm test' con 168 tests en verde y 5 suites E2E en Playwright.</p>
-          <div class="speech-bubble" id="text-script-6">
+          <div class="speech-bubble" id="text-script-5">
             "El sistema cuenta con una cobertura integral de pruebas que incluye 168 tests unitarios y de integración para backend y frontend, complementados con 5 suites End-to-End automatizadas con Playwright que validan todos los flujos de usuario con grabación en video. Muchas gracias."
           </div>
         </div>
@@ -1274,7 +1210,7 @@ tipoEntrada.<span class="f">descontarCupo</span>(data.cantidad); <span class="c"
 
   <script>
     let currentStep = 0;
-    const totalSteps = 5;
+    const totalSteps = 4;
 
     function switchView(mode) {
       const flowView = document.getElementById('view-flow');
@@ -1325,7 +1261,7 @@ tipoEntrada.<span class="f">descontarCupo</span>(data.cantidad); <span class="c"
 
     function copyFullScript() {
       const parts = [];
-      for (let i = 1; i <= 6; i++) {
+      for (let i = 1; i <= 5; i++) {
         const el = document.getElementById('text-script-' + i);
         if (el) parts.push(el.innerText.trim());
       }
